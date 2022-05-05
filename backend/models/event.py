@@ -1,0 +1,16 @@
+import json
+
+class Event:
+    def __init__(self, id, sport_key, sport_title, home_team, away_team) -> None:
+        self.id = id
+        self.sport_key = sport_key
+        self.sport_title = sport_title
+        self.home_team = home_team
+        self.away_team = away_team
+        self.prices = []
+    
+    def toJson(self):
+        return json.dumps(self, default = lambda o: o.__dict__, sort_keys = True, indent = 4)
+
+    def addPrice(self, price):
+        self.prices.append(price)
