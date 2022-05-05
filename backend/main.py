@@ -1,13 +1,34 @@
 import requests
 import time
 
-from models import Event, Price
+from models import Event, Price, Opportunity
 
 def get_us_odds(api_key):
     url = f'https://api.the-odds-api.com/v4/sports/upcoming/odds/?regions=us&markets=h2h&oddsFormat=decimal&apiKey={api_key}'
     response = requests.get(url)
     return response.json()
 
+def dutch_calculator(event):
+    opportunities = []
+
+    # for a given event, compute dutching opportunities between any two bookmakers
+    prices = event.prices
+
+    for price in prices:
+        home_price = price.home_win_price
+        home_bookmaker = price.bookmaker_title
+
+        for _price in prices:
+            away_price = _price.away_win_price
+            away_bookmaker = _price.bookmaker_title
+
+            for __price in prices:
+                draw_price = __price.draw_price
+                draw_bookmaker = __price.bookmaker_title
+
+        opportunities.append(Opportunity(home_bookmaker, home_price, away_bookmaker, away_price, draw_bookmaker, draw_price))
+    
+    return opportunities
 
 with open('api_key', 'r') as file:
     api_key = file.read().rstrip()
@@ -33,7 +54,10 @@ with open('api_key', 'r') as file:
                 price = Price(bookmaker['key'], bookmaker['title'], bookmaker['last_update'], home_price['price'], away_price['price'], draw_price['price'])
                 event.addPrice(price)
 
-            print(event.toJson())
+            opportunities = dutch_calculator(event)
+
+            for o in opportunities:
+                print(o.toJson())
 
         # sleep for 1 hour
         time.sleep(3600)
