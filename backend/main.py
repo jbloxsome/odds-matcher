@@ -1,14 +1,20 @@
 import requests
-import time
+import uvicorn
 
+from fastapi import FastAPI
 from models import Event, Price, Opportunity
 
-def get_us_odds(api_key):
-    url = f'https://api.the-odds-api.com/v4/sports/upcoming/odds/?regions=us&markets=h2h&oddsFormat=decimal&apiKey={api_key}'
+def get_sports(api_key):
+    url = f'https://api.the-odds-api.com/v4/sports/?apiKey={api_key}'
     response = requests.get(url)
     return response.json()
 
-def dutch_calculator(event):
+def get_us_odds(api_key, region, sport):
+    url = f'https://api.the-odds-api.com/v4/sports/{sport}/odds/?regions={region}&markets=h2h&oddsFormat=decimal&apiKey={api_key}'
+    response = requests.get(url)
+    return response.json()
+
+def dutch_calculator(event, stake):
     opportunities = []
 
     # for a given event, compute dutching opportunities between any two bookmakers
@@ -26,7 +32,7 @@ def dutch_calculator(event):
                 draw_price = __price.draw_price
                 draw_bookmaker = __price.bookmaker_title
 
-        opp = Opportunity(home_bookmaker, home_price, away_bookmaker, away_price, draw_bookmaker, draw_price)
+        opp = Opportunity(home_bookmaker, home_price, away_bookmaker, away_price, draw_bookmaker, draw_price, event, stake)
         opp.compute_round()
         opp.compute_stakes()
         opp.compute_returns()
@@ -35,12 +41,22 @@ def dutch_calculator(event):
     
     return opportunities
 
-with open('api_key', 'r') as file:
-    api_key = file.read().rstrip()
+app = FastAPI()
+
+@app.get("/sports")
+async def sports():
+    with open('api_key', 'r') as file:
+        api_key = file.read().rstrip()
+
+        return get_sports(api_key=api_key)
+
+@app.get("/odds")
+async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.00):
+    with open('api_key', 'r') as file:
+        api_key = file.read().rstrip()
     
-    while True:
         # fetch the latest odds
-        odds = get_us_odds(api_key=api_key)
+        odds = get_us_odds(api_key=api_key, sport=sport, region=region)
 
         for odd in odds:
             event = Event(odd['id'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
@@ -59,10 +75,9 @@ with open('api_key', 'r') as file:
                 price = Price(bookmaker['key'], bookmaker['title'], bookmaker['last_update'], home_price['price'], away_price['price'], draw_price['price'])
                 event.addPrice(price)
 
-            opportunities = dutch_calculator(event)
+            opportunities = dutch_calculator(event, stake)
 
-            for o in opportunities:
-                print(o.toJson())
+            return opportunities
 
-        # sleep for 1 hour
-        time.sleep(3600)
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000)
