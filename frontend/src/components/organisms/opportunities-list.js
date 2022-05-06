@@ -42,7 +42,7 @@ function OpportunitiesList() {
                 (result) => {
                     setOpportunities({
                         isLoading: false,
-                        items: result.sort((a, b) => a.round < b.round),
+                        items: result,
                         error: null
                     });
                 },
@@ -57,7 +57,7 @@ function OpportunitiesList() {
     }, [sport, region]);
 
     return(
-        <Container>
+        <Container fluid>
             <Row>
                 <Col xs={6}>
                     <FloatingLabel controlId='floatingSelect' label='Select sport'>

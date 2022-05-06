@@ -68,7 +68,7 @@ async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.0
         odds = get_us_odds(api_key=api_key, sport=sport, region=region)
 
         for odd in odds:
-            event = Event(odd['id'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
+            event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
             
             for bookmaker in odd['bookmakers']:
                 market = [m for m in bookmaker['markets'] if m['key'] == 'h2h'][0]
@@ -85,6 +85,8 @@ async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.0
                 event.addPrice(price)
 
             opportunities = dutch_calculator(event, stake)
+
+            opportunities.sort(key = lambda x: x.round)
 
             return opportunities
 

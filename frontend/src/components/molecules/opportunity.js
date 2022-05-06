@@ -1,6 +1,8 @@
 import Card from 'react-bootstrap/Card';
 import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
+import Moment from 'react-moment';
+
 import './opportunity.css';
 
 function american(decimal) {
@@ -16,11 +18,15 @@ function Opportunity({ opportunity }) {
         <Card>
             <Card.Body>
                 <Row>
+                     <Col xs={2}>
+                        <h5>Time</h5>
+                        <p><Moment format='MM/DD/YYYY HH:mm'>{opportunity.event.time}</Moment></p>
+                    </Col>
                     <Col xs={2}>
                         <h5>Competition</h5>
                         <p>{opportunity.event.sport_title}</p>
                     </Col>
-                    <Col xs={4}>
+                    <Col xs={2}>
                         <h5>Event</h5>
                         <p>{opportunity.event.home_team} vs {opportunity.event.away_team}</p>
                     </Col>

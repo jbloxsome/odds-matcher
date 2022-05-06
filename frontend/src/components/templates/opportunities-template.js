@@ -3,7 +3,7 @@ import OpportunitiesList from '../organisms/opportunities-list';
 
 function OpportunitiesTemplate() {
     return (
-        <Container>
+        <Container fluid>
             <OpportunitiesList />
         </Container>
     )

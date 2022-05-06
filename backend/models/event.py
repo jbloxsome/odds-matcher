@@ -1,8 +1,9 @@
 import json
 
 class Event:
-    def __init__(self, id, sport_key, sport_title, home_team, away_team) -> None:
+    def __init__(self, id, time, sport_key, sport_title, home_team, away_team) -> None:
         self.id = id
+        self.time = time
         self.sport_key = sport_key
         self.sport_title = sport_title
         self.home_team = home_team
