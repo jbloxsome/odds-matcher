@@ -26,7 +26,12 @@ def dutch_calculator(event):
                 draw_price = __price.draw_price
                 draw_bookmaker = __price.bookmaker_title
 
-        opportunities.append(Opportunity(home_bookmaker, home_price, away_bookmaker, away_price, draw_bookmaker, draw_price))
+        opp = Opportunity(home_bookmaker, home_price, away_bookmaker, away_price, draw_bookmaker, draw_price)
+        opp.compute_round()
+        opp.compute_stakes()
+        opp.compute_returns()
+        opp.compute_profits()
+        opportunities.append(opp)
     
     return opportunities
 
