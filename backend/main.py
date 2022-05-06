@@ -2,6 +2,7 @@ import requests
 import uvicorn
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from models import Event, Price, Opportunity
 
 def get_sports(api_key):
@@ -42,6 +43,14 @@ def dutch_calculator(event, stake):
     return opportunities
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
 
 @app.get("/sports")
 async def sports():

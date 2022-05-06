@@ -30,7 +30,7 @@ class Opportunity:
     def compute_profits(self):
         self.home_win_profit = self.home_win_return - self.stake
         self.away_win_profit = self.away_win_return - self.stake
-        self.draw_profit = self.draw_return - self.stake
+        self.draw_profit = (self.draw_return - self.stake) if self.draw_price > 0 else 0
 
     def toJson(self):
         return json.dumps(self, default = lambda o: o.__dict__, sort_keys = True, indent = 4)
