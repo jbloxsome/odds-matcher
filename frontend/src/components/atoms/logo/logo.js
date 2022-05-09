@@ -22,8 +22,7 @@ const bookmakers = {
 }
 
 function Logo({ bookmaker_key }) {
-    console.log(bookmaker_key);
-    return <img src={bookmakers[bookmaker_key]} alt={bookmaker_key + ' logo'} width='200px' />
+    return <img src={bookmakers[bookmaker_key]} alt={bookmaker_key + ' logo'} height='75px' style={{padding: '0.5rem'}} />
 }
 
 export default Logo;

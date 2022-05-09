@@ -42,7 +42,51 @@ def dutch_calculator(event, stake):
         opp.compute_returns()
         opp.compute_profits()
         opportunities.append(opp)
+
+    for price in prices:
+        away_price = price.away_win_price
+        away_bookmaker = price.bookmaker_title
+        away_bookmaker_key = price.bookmaker_key
+
+        for _price in prices:
+            home_price = _price.home_win_price
+            home_bookmaker = _price.bookmaker_title
+            home_bookmaker_key = _price.bookmaker_key
+
+            for __price in prices:
+                draw_price = __price.draw_price
+                draw_bookmaker = __price.bookmaker_title
+                draw_bookmaker_key = __price.bookmaker_key
+
+        opp = Opportunity(home_bookmaker, home_bookmaker_key, home_price, away_bookmaker, away_bookmaker_key, away_price, draw_bookmaker, draw_bookmaker_key, draw_price, event, stake)
+        opp.compute_round()
+        opp.compute_stakes()
+        opp.compute_returns()
+        opp.compute_profits()
+        opportunities.append(opp)
     
+    for price in prices:
+        draw_price = price.draw_price
+        draw_bookmaker = price.bookmaker_title
+        draw_bookmaker_key = price.bookmaker_key
+
+        for _price in prices:
+            home_price = _price.home_win_price
+            home_bookmaker = _price.bookmaker_title
+            home_bookmaker_key = _price.bookmaker_key
+
+            for __price in prices:
+                away_price = __price.away_win_price
+                away_bookmaker = __price.bookmaker_title
+                away_bookmaker_key = __price.bookmaker_key
+
+        opp = Opportunity(home_bookmaker, home_bookmaker_key, home_price, away_bookmaker, away_bookmaker_key, away_price, draw_bookmaker, draw_bookmaker_key, draw_price, event, stake)
+        opp.compute_round()
+        opp.compute_stakes()
+        opp.compute_returns()
+        opp.compute_profits()
+        opportunities.append(opp)
+
     return opportunities
 
 app = FastAPI()
@@ -70,6 +114,8 @@ async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.0
         # fetch the latest odds
         odds = get_us_odds(api_key=api_key, sport=sport, region=region)
 
+        opportunities = []
+
         for odd in odds:
             event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
             
@@ -87,11 +133,14 @@ async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.0
                 price = Price(bookmaker['key'], bookmaker['title'], bookmaker['last_update'], home_price['price'], away_price['price'], draw_price['price'])
                 event.addPrice(price)
 
-            opportunities = dutch_calculator(event, stake)
+            opps = dutch_calculator(event, stake)
+            
+            for opp in opps:
+                opportunities.append(opp)
 
-            opportunities.sort(key = lambda x: x.round)
+        opportunities.sort(key = lambda x: x.round)
 
-            return opportunities
+        return opportunities
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
