@@ -2,7 +2,7 @@
 ## Running in dev
 1. Install Docker
 2. Get an API key from https://the-odds-api.com/
-3. Create the file: backend/api_key, and paste your API key into this file
+3. Create a .env file and add the following environment variable: THE_ODDS_API_KEY=YOUR_API_KEY
 3. Start the services:
 ```
 docker-compose up

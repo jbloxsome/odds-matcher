@@ -15,7 +15,7 @@ function OpportunitiesList() {
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_ENDPOINT + '/sports')
+        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/sports')
             .then(resp => resp.json())
             .then(
                 (result) => {
@@ -36,7 +36,7 @@ function OpportunitiesList() {
     }, []);
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_ENDPOINT + '/odds?sport=' + sport + '&region=' + region)
+        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/odds/?sport=' + sport + '&region=' + region)
             .then(resp => resp.json())
             .then(
                 (result) => {
@@ -84,9 +84,9 @@ function OpportunitiesList() {
             <Col>
                 {opportunities.items.map((o, i) => {
                     return (
-                        <Row>
+                        <Row key={i}>
                             <Col>
-                                <Opportunity key={i} opportunity={o} />
+                                <Opportunity opportunity={o} />
                             </Col>
                         </Row>
                     )

@@ -29,7 +29,14 @@ const bookmakers = {
     'coral': '/logos/coral.png',
     'pinnacle': '/logos/pinnacle.jpg',
     'betclic': '/logos/betclic.png',
-    'marathonbet': '/logos/marathonbet.jpg'
+    'marathonbet': '/logos/marathonbet.jpg',
+    'casumo': '/logos/casumo.png',
+    'leovegas': '/logos/leovegas.png',
+    'skybet': '/logos/skybet.png',
+    'virginbet': '/logos/virginbet.png',
+    'paddypower': '/logos/paddypower.png',
+    'nordicbet': '/logos/nordicbet.png',
+    'livescorebet': '/logos/livescorebet.png'
 }
 
 function Logo({ bookmaker_key }) {
