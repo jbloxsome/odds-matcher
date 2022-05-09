@@ -1,5 +1,6 @@
 import requests
 import uvicorn
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -101,46 +102,43 @@ app.add_middleware(
 
 @app.get("/sports")
 async def sports():
-    with open('api_key', 'r') as file:
-        api_key = file.read().rstrip()
-
-        return get_sports(api_key=api_key)
+    api_key = os.environ.get('THE_ODDS_API_KEY')
+    return get_sports(api_key=api_key)
 
 @app.get("/odds")
 async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.00):
-    with open('api_key', 'r') as file:
-        api_key = file.read().rstrip()
+    api_key = os.environ.get('THE_ODDS_API_KEY')
     
-        # fetch the latest odds
-        odds = get_us_odds(api_key=api_key, sport=sport, region=region)
+    # fetch the latest odds
+    odds = get_us_odds(api_key=api_key, sport=sport, region=region)
 
-        opportunities = []
+    opportunities = []
 
-        for odd in odds:
-            event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
-            
-            for bookmaker in odd['bookmakers']:
-                market = [m for m in bookmaker['markets'] if m['key'] == 'h2h'][0]
-                home_price = [p for p in market['outcomes'] if p['name'] == event.home_team][0]
-                away_price = [p for p in market['outcomes'] if p['name'] == event.away_team][0]
+    for odd in odds:
+        event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
+        
+        for bookmaker in odd['bookmakers']:
+            market = [m for m in bookmaker['markets'] if m['key'] == 'h2h'][0]
+            home_price = [p for p in market['outcomes'] if p['name'] == event.home_team][0]
+            away_price = [p for p in market['outcomes'] if p['name'] == event.away_team][0]
 
-                # in events where there cant be a draw the price is just 0 for a draw
-                try:
-                    draw_price = [p for p in market['outcomes'] if p['name'] == 'Draw'][0]
-                except:
-                    draw_price = {'price': 0}
+            # in events where there cant be a draw the price is just 0 for a draw
+            try:
+                draw_price = [p for p in market['outcomes'] if p['name'] == 'Draw'][0]
+            except:
+                draw_price = {'price': 0}
 
-                price = Price(bookmaker['key'], bookmaker['title'], bookmaker['last_update'], home_price['price'], away_price['price'], draw_price['price'])
-                event.addPrice(price)
+            price = Price(bookmaker['key'], bookmaker['title'], bookmaker['last_update'], home_price['price'], away_price['price'], draw_price['price'])
+            event.addPrice(price)
 
-            opps = dutch_calculator(event, stake)
-            
-            for opp in opps:
-                opportunities.append(opp)
+        opps = dutch_calculator(event, stake)
+        
+        for opp in opps:
+            opportunities.append(opp)
 
-        opportunities.sort(key = lambda x: x.round)
+    opportunities.sort(key = lambda x: x.round)
 
-        return opportunities
+    return opportunities
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
