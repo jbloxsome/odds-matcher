@@ -100,6 +100,10 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+@app.get("/")
+async def health():
+    return '{"healthy": "true"}'
+
 @app.get("/sports")
 async def sports():
     api_key = os.environ.get('THE_ODDS_API_KEY')
