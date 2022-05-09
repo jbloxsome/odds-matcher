@@ -9,7 +9,7 @@ docker-compose up
 ```
 
 ## Deploying in production
-There are two assets that need to be deployed: the backend, and the frontend.
+There are two assets that need to be deployed: the backend, and the frontend. Both services can be built into a docker image to allow for flexible deployment into a range of different web environments.
 
 ### Building the backend
 1. Build the docker image
@@ -21,14 +21,18 @@ docker build -t dutcher-backend .
 ```
 
 ### Building the frontend
-1. Build the app
+1. Modify ./frontend/envs/.prod.env to point to the URL where the backend is deployed e.g the file should look something like this:
+```
+REACT_APP_API_ENDPOINT=https://backend.com/
+```
+2. Build the app
 ```
 cd frontend
 ```
 ```
-yarn && yarn build
+yarn && yarn build:prod
 ```
-2. Build the docker image
+3. Build the docker image
 ```
 docker build -t dutcher-frontend .
 ```

@@ -15,7 +15,7 @@ function OpportunitiesList() {
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
 
     useEffect(() => {
-        fetch('http://localhost:8000/sports')
+        fetch(process.env.REACT_APP_API_ENDPOINT + '/sports')
             .then(resp => resp.json())
             .then(
                 (result) => {
@@ -36,7 +36,7 @@ function OpportunitiesList() {
     }, []);
 
     useEffect(() => {
-        fetch('http://localhost:8000/odds?sport=' + sport + '&region=' + region)
+        fetch(process.env.REACT_APP_API_ENDPOINT + '/odds?sport=' + sport + '&region=' + region)
             .then(resp => resp.json())
             .then(
                 (result) => {
