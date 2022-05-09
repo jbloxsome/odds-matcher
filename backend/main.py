@@ -24,16 +24,19 @@ def dutch_calculator(event, stake):
     for price in prices:
         home_price = price.home_win_price
         home_bookmaker = price.bookmaker_title
+        home_bookmaker_key = price.bookmaker_key
 
         for _price in prices:
             away_price = _price.away_win_price
             away_bookmaker = _price.bookmaker_title
+            away_bookmaker_key = _price.bookmaker_key
 
             for __price in prices:
                 draw_price = __price.draw_price
                 draw_bookmaker = __price.bookmaker_title
+                draw_bookmaker_key = __price.bookmaker_key
 
-        opp = Opportunity(home_bookmaker, home_price, away_bookmaker, away_price, draw_bookmaker, draw_price, event, stake)
+        opp = Opportunity(home_bookmaker, home_bookmaker_key, home_price, away_bookmaker, away_bookmaker_key, away_price, draw_bookmaker, draw_bookmaker_key, draw_price, event, stake)
         opp.compute_round()
         opp.compute_stakes()
         opp.compute_returns()

@@ -1,12 +1,15 @@
 import json
 
 class Opportunity:
-    def __init__(self, home_win_bookmaker, home_win_price, away_win_bookmaker, away_win_price, draw_bookmaker, draw_price, event, stake) -> None:
+    def __init__(self, home_win_bookmaker, home_win_bookmaker_key, home_win_price, away_win_bookmaker, away_win_bookmaker_key, away_win_price, draw_bookmaker, draw_bookmaker_key, draw_price, event, stake) -> None:
         self.home_win_bookmaker = home_win_bookmaker
+        self.home_win_bookmaker_key = home_win_bookmaker_key
         self.home_win_price = home_win_price
         self.away_win_bookmaker = away_win_bookmaker
+        self.away_win_bookmaker_key = away_win_bookmaker_key
         self.away_win_price = away_win_price
         self.draw_bookmaker = draw_bookmaker
+        self.draw_bookmaker_key = draw_bookmaker_key
         self.draw_price = draw_price
         self.event = event
         self.stake = stake
