@@ -104,12 +104,12 @@ app.add_middleware(
 async def health():
     return '{"healthy": "true"}'
 
-@app.get("/sports")
+@app.get("/api/sports")
 async def sports():
     api_key = os.environ.get('THE_ODDS_API_KEY')
     return get_sports(api_key=api_key)
 
-@app.get("/odds")
+@app.get("/api/odds")
 async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.00):
     api_key = os.environ.get('THE_ODDS_API_KEY')
     
