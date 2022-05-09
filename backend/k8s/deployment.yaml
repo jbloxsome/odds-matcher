@@ -24,7 +24,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: the-odds-api
-              value: api_key
+              key: api_key
         resources:
           requests:
             memory: 1024Mi
