@@ -11,14 +11,25 @@ const bookmakers = {
     'foxbet': '/logos/foxbet.png',
     'gtbets': '/logos/gtbets.png',
     'intertops': '/logos/intertops.png',
-    'lowvig': '/logos/lowvig.jpg',
+    'lowvig': '/logos/lowvig.png',
     'mybookieag': '/logos/mybookieag.jpg',
     'pointsbetus': '/logos/pointsbetus.jpg',
     'sugarhouse': '/logos/sugarhouse.png',
     'twinspires': '/logos/twinspires.png',
     'unibet': '/logos/unibet.jpg',
     'williamhill_us': '/logos/williamhill_us.jpg',
-    'wynnbet': '/logos/wynnbet.jpg'
+    'williamhill': '/logos/williamhill_us.jpg',
+    'wynnbet': '/logos/wynnbet.jpg',
+    'sport888': '/logos/sport888.png',
+    'betfred': '/logos/betfred.png',
+    'betvictor': '/logos/betvictor.jpg',
+    'matchbook': '/logos/matchbook.png',
+    'ladbrokes': '/logos/ladbrokes.png',
+    'boylesports': '/logos/boylesports.png',
+    'coral': '/logos/coral.png',
+    'pinnacle': '/logos/pinnacle.jpg',
+    'betclic': '/logos/betclic.png',
+    'marathonbet': '/logos/marathonbet.jpg'
 }
 
 function Logo({ bookmaker_key }) {
