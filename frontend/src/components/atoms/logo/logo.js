@@ -1,3 +1,6 @@
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+
 const bookmakers = {
     'barstool': '/logos/barstool.png',
     'betonlineag': '/logos/betonlineag.png',
@@ -40,7 +43,13 @@ const bookmakers = {
 }
 
 function Logo({ bookmaker_key }) {
-    return <img src={bookmakers[bookmaker_key]} alt={bookmaker_key + ' logo'} height='75px' style={{padding: '0.5rem'}} />
+    return (
+        <Row style={{'height': '200px'}} className='align-items-center'>
+            <Col>
+                <img src={bookmakers[bookmaker_key]} alt={bookmaker_key + ' logo'} width="100%" style={{ 'padding': '1rem' }}/>
+            </Col>
+        </Row>
+    )
 }
 
 export default Logo;
