@@ -20,20 +20,20 @@ function Opportunity({ opportunity }) {
         <Card>
             <Card.Body>
                 <Row>
-                     <Col xs={2}>
-                        <h5>Time</h5>
+                     <Col xs={4} md={2}>
+                        <h6>Time</h6>
                         <p><Moment format='MM/DD/YYYY HH:mm'>{opportunity.event.time}</Moment></p>
                     </Col>
-                    <Col xs={2}>
-                        <h5>Competition</h5>
+                    <Col xs={4} md={2}>
+                        <h6>Competition</h6>
                         <p>{opportunity.event.sport_title}</p>
                     </Col>
-                    <Col xs={2}>
-                        <h5>Event</h5>
+                    <Col xs={4} md={2}>
+                        <h6>Event</h6>
                         <p>{opportunity.event.home_team} vs {opportunity.event.away_team}</p>
                     </Col>
-                    <Col xs={2}>
-                        <h5>Bet 1</h5>
+                    <Col xs={4} md={2}>
+                        <h6>Bet 1</h6>
                         <Logo bookmaker_key={opportunity.home_win_bookmaker_key} />
                         <h6>Home Win - {opportunity.home_win_bookmaker}</h6>
                         <p>Odds: {american(opportunity.home_win_price)}</p>
@@ -41,8 +41,8 @@ function Opportunity({ opportunity }) {
                         <p>Profit: £{opportunity.home_win_profit.toFixed(2)}</p>
                     </Col>
                     {opportunity.draw_price > 0 &&
-                        <Col xs={2}>
-                            <h5>Bet 2</h5>
+                        <Col xs={4} md={2}>
+                            <h6>Bet 2</h6>
                             <Logo bookmaker_key={opportunity.draw_bookmaker_key} />
                             <h6>Draw - {opportunity.draw_bookmaker}</h6>
                             <p>Odds: {american(opportunity.draw_price)}</p>
@@ -50,12 +50,12 @@ function Opportunity({ opportunity }) {
                             <p>Profit: £{opportunity.draw_profit.toFixed(2)}</p>
                         </Col>
                     }
-                    <Col xs={2}>
+                    <Col xs={4} md={2}>
                         {opportunity.draw_price > 0 &&
-                            <h5>Bet 3</h5>
+                            <h6>Bet 3</h6>
                         }
                         {opportunity.draw_price <= 0 &&
-                            <h5>Bet 2</h5>
+                            <h6>Bet 2</h6>
                         }
                         <Logo bookmaker_key={opportunity.away_win_bookmaker_key} />
                         <h6>Away Win - {opportunity.away_win_bookmaker}</h6>

@@ -36,7 +36,7 @@ function OpportunitiesList() {
     }, []);
 
     useEffect(() => {
-        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/odds/?sport=' + sport + '&region=' + region)
+        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/odds?sport=' + sport + '&region=' + region)
             .then(resp => resp.json())
             .then(
                 (result) => {
