@@ -37,8 +37,8 @@ function Opportunity({ opportunity }) {
                         <Logo bookmaker_key={opportunity.home_win_bookmaker_key} />
                         <h6>Home Win - {opportunity.home_win_bookmaker}</h6>
                         <p>Odds: {american(opportunity.home_win_price)}</p>
-                        <p>Stake: £{opportunity.home_win_stake.toFixed(2)}</p>
-                        <p>Profit: £{opportunity.home_win_profit.toFixed(2)}</p>
+                        <p>Stake: ${opportunity.home_win_stake.toFixed(2)}</p>
+                        <p>Profit: ${opportunity.home_win_profit.toFixed(2)}</p>
                     </Col>
                     {opportunity.draw_price > 0 &&
                         <Col xs={4} md={2}>
@@ -46,8 +46,8 @@ function Opportunity({ opportunity }) {
                             <Logo bookmaker_key={opportunity.draw_bookmaker_key} />
                             <h6>Draw - {opportunity.draw_bookmaker}</h6>
                             <p>Odds: {american(opportunity.draw_price)}</p>
-                            <p>Stake: £{opportunity.draw_stake.toFixed(2)}</p>
-                            <p>Profit: £{opportunity.draw_profit.toFixed(2)}</p>
+                            <p>Stake: ${opportunity.draw_stake.toFixed(2)}</p>
+                            <p>Profit: ${opportunity.draw_profit.toFixed(2)}</p>
                         </Col>
                     }
                     <Col xs={4} md={2}>
@@ -60,8 +60,8 @@ function Opportunity({ opportunity }) {
                         <Logo bookmaker_key={opportunity.away_win_bookmaker_key} />
                         <h6>Away Win - {opportunity.away_win_bookmaker}</h6>
                         <p>Odds: {american(opportunity.away_win_price)}</p>
-                        <p>Stake: £{opportunity.away_win_stake.toFixed(2)}</p>
-                        <p>Profit: £{opportunity.away_win_profit.toFixed(2)}</p>
+                        <p>Stake: ${opportunity.away_win_stake.toFixed(2)}</p>
+                        <p>Profit: ${opportunity.away_win_profit.toFixed(2)}</p>
                     </Col>
                 </Row>
             </Card.Body>

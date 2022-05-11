@@ -72,10 +72,9 @@ function OpportunitiesList() {
                 <Col xs={6}>
                     <FloatingLabel controlId='floatingSelect' label='Select region'>
                         <Form.Select onChange={e => setRegion(e.target.value)} aria-label='Select region'>
-                            <option value='us'>United States</option>
+                            <option value='us'>United States + Canada</option>
                             <option value='uk'>United Kingdom</option>
-                            <option value='eu'>European Union</option>
-                            <option value='aus'>Australia</option>
+                            <option value='eu'>Europe</option>
                         </Form.Select>
                     </FloatingLabel>
                 </Col>
