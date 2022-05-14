@@ -10,7 +10,7 @@ import Opportunity from '../molecules/opportunity';
 function OpportunitiesList() {
 
     const [sports, setSports] = useState({ isLoading: true, items: [], error: null });
-    const [sport, setSport] = useState('upcoming');
+    const [sport, setSport] = useState('baseball_mlb');
     const [region, setRegion] = useState('us');
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
 
@@ -19,9 +19,12 @@ function OpportunitiesList() {
             .then(resp => resp.json())
             .then(
                 (result) => {
+
+                    const sports = result.filter(i => i.key.includes('basketball') || i.key.includes('hockey') || i.key.includes('baseball'))
+
                     setSports({
                         isLoading: false,
-                        items: result,
+                        items: sports,
                         error: null
                     });
                 },
@@ -62,7 +65,6 @@ function OpportunitiesList() {
                 <Col xs={6}>
                     <FloatingLabel controlId='floatingSelect' label='Select sport'>
                         <Form.Select onChange={e => setSport(e.target.value)} aria-label='Select sport'>
-                            <option value='upcoming'>Upcoming</option>
                             {sports.items.map((s, i) => {
                                 return <option value={s.key} key={i}>{s.description}</option>
                             })}
