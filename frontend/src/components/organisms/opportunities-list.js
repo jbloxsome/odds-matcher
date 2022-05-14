@@ -83,7 +83,7 @@ function OpportunitiesList() {
             </Row>
         <Row>
             <Col>
-                {opportunities.items.map((o, i) => {
+                {opportunities.items.length > 0 && opportunities.items.map((o, i) => {
                     return (
                         <Row key={i}>
                             <Col>
@@ -92,6 +92,13 @@ function OpportunitiesList() {
                         </Row>
                     )
                 })}
+                {opportunities.items.length === 0 && 
+                    <Row style={{'padding-top': '1rem'}}>
+                        <Col>
+                            <p>Sorry, no odds were found for this market.</p>
+                        </Col>
+                    </Row>
+                }
             </Col>
         </Row>
         </Container>

@@ -111,36 +111,43 @@ async def sports():
 
 @app.get("/api/odds")
 async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.00):
-    api_key = os.environ.get('THE_ODDS_API_KEY')
+    try:
+        api_key = os.environ.get('THE_ODDS_API_KEY')
+        
+        # fetch the latest odds
+        odds = get_us_odds(api_key=api_key, sport=sport, region=region)
+
+        opportunities = []
+
+        for odd in odds:
+            event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
+            
+            for bookmaker in odd['bookmakers']:
+
+                if bookmaker['key'] not in ['lowvig', 'bovada', 'betus', 'intertops', 'betonlineag', 'mybookieag', 'gtbets', 'betfair']:
+
+                    market = [m for m in bookmaker['markets'] if m['key'] == 'h2h'][0]
+                    home_price = [p for p in market['outcomes'] if p['name'] == event.home_team][0]
+                    away_price = [p for p in market['outcomes'] if p['name'] == event.away_team][0]
+
+                    # in events where there cant be a draw the price is just 0 for a draw
+                    try:
+                        draw_price = [p for p in market['outcomes'] if p['name'] == 'Draw'][0]
+                    except:
+                        draw_price = {'price': 0}
+
+                    price = Price(bookmaker['key'], bookmaker['title'], bookmaker['last_update'], home_price['price'], away_price['price'], draw_price['price'])
+                    event.addPrice(price)
+
+            opps = dutch_calculator(event, stake)
+            
+            for opp in opps:
+                opportunities.append(opp)
+
+        opportunities.sort(key = lambda x: x.round)
     
-    # fetch the latest odds
-    odds = get_us_odds(api_key=api_key, sport=sport, region=region)
-
-    opportunities = []
-
-    for odd in odds:
-        event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
-        
-        for bookmaker in odd['bookmakers']:
-            market = [m for m in bookmaker['markets'] if m['key'] == 'h2h'][0]
-            home_price = [p for p in market['outcomes'] if p['name'] == event.home_team][0]
-            away_price = [p for p in market['outcomes'] if p['name'] == event.away_team][0]
-
-            # in events where there cant be a draw the price is just 0 for a draw
-            try:
-                draw_price = [p for p in market['outcomes'] if p['name'] == 'Draw'][0]
-            except:
-                draw_price = {'price': 0}
-
-            price = Price(bookmaker['key'], bookmaker['title'], bookmaker['last_update'], home_price['price'], away_price['price'], draw_price['price'])
-            event.addPrice(price)
-
-        opps = dutch_calculator(event, stake)
-        
-        for opp in opps:
-            opportunities.append(opp)
-
-    opportunities.sort(key = lambda x: x.round)
+    except:
+        opportunities = []
 
     return opportunities
 
