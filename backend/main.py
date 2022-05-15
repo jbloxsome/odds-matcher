@@ -110,7 +110,12 @@ async def sports():
     return get_sports(api_key=api_key)
 
 @app.get("/api/odds")
-async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.00):
+async def odds(
+    sport: str = 'upcoming', 
+    region: str = 'us', 
+    stake: float = 100.00,
+    bookmakers: str = 'betmgm,williamhill_us,draftkings,fanduel,unibet,pointsbetus,sugarhouse,twinspires,barstool,wynnbet,foxbet'
+):
     try:
         api_key = os.environ.get('THE_ODDS_API_KEY')
         
@@ -119,12 +124,15 @@ async def odds(sport: str = 'upcoming', region: str = 'us', stake: float = 100.0
 
         opportunities = []
 
+        # parse list of bookmakers
+        bookmakers = bookmakers.split(',')
+
         for odd in odds:
             event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
             
             for bookmaker in odd['bookmakers']:
 
-                if bookmaker['key'] not in ['lowvig', 'bovada', 'betus', 'intertops', 'betonlineag', 'mybookieag', 'gtbets', 'betfair']:
+                if bookmaker['key'] in bookmakers:
 
                     market = [m for m in bookmaker['markets'] if m['key'] == 'h2h'][0]
                     home_price = [p for p in market['outcomes'] if p['name'] == event.home_team][0]
