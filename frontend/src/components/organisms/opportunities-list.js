@@ -7,6 +7,7 @@ import FloatingLabel from 'react-bootstrap/FloatingLabel';
 
 import Opportunity from '../molecules/opportunity';
 import BookmakerFilter from '../molecules/bookmaker-filter/bookmaker-filter';
+import OddsFilter from '../molecules/odds-filter/odds-filter';
 
 const bookmakers = [
     {
@@ -55,6 +56,14 @@ const bookmakers = [
     }
 ]
 
+function american(decimal) {
+    if (decimal >= 2) {
+        return {value: Math.ceil((decimal - 1) * 100), sign: 1}
+    } else {
+        return {value: (-1 * Math.ceil(-100 / (decimal - 1))), sign: -1}
+    }
+}
+
 function OpportunitiesList() {
 
     const [sports, setSports] = useState({ isLoading: true, items: [], error: null });
@@ -62,6 +71,9 @@ function OpportunitiesList() {
     const [region, setRegion] = useState('us');
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
     const [selectedBookmakers, setSelectedBookmakers] = useState({ selected: [...bookmakers] });
+    const [maxOdds, setMaxOdds] = useState(200);
+    const [minOdds, setMinOdds] = useState(-200)
+    const [maxSpread, setMaxSpread] = useState(20);
 
     useEffect(() => {
         fetch(process.env.REACT_APP_API_ENDPOINT + '/api/sports')
@@ -130,6 +142,28 @@ function OpportunitiesList() {
         });
     });
 
+    const checkFilters = ((o) => {
+
+        const bet_one = american(o['home_win_price']);
+        const bet_two = american(o['away_win_price']);
+
+        const spread = Math.abs(bet_one.value - bet_two.value);
+
+        if (spread > maxSpread) {
+            return false;
+        }
+
+        if (bet_one.value > maxOdds || bet_two.value > maxOdds) {
+            return false;
+        }
+
+        if (bet_one.value * bet_one.sign < minOdds || bet_two.value * bet_two.sign < minOdds) {
+            return false;
+        }
+
+        return true
+    })
+
     return(
         <Container fluid>
             <Row>
@@ -159,21 +193,30 @@ function OpportunitiesList() {
                             <BookmakerFilter availableBookmakers={bookmakers} bookmakerToggle={bookmakerToggle} />
                         </Col>
                     </Row>
+                    <Row>
+                        <Col>
+                            <OddsFilter minOdds={minOdds} maxOdds={maxOdds} maxSpread={maxSpread} setMinOdds={setMinOdds} setMaxOdds={setMaxOdds} setMaxSpread={setMaxSpread} />
+                        </Col>
+                    </Row>
                 </Col>
                 <Col xs={9}>
                     <Row>
                         <Col>
                             {opportunities.items.length > 0 && opportunities.items.map((o, i) => {
-                                return (
-                                    <Row key={i}>
-                                        <Col>
-                                            <Opportunity opportunity={o} />
-                                        </Col>
-                                    </Row>
-                                )
+                                if (checkFilters(o)) {
+                                    return (
+                                        <Row key={i}>
+                                            <Col>
+                                                <Opportunity opportunity={o} />
+                                            </Col>
+                                        </Row>
+                                    )
+                                } else {
+                                    return (<></>)
+                                }
                             })}
                             {opportunities.items.length === 0 && 
-                                <Row style={{'padding-top': '1rem'}}>
+                                <Row style={{'paddingTop': '1rem'}}>
                                     <Col>
                                         <p>Sorry, no odds were found for this market.</p>
                                     </Col>
