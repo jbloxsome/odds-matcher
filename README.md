@@ -1,4 +1,4 @@
-# Dutch Odds Matcher
+# Odds Matcher
 ## Running in dev
 1. Install Docker
 2. Get an API key from https://the-odds-api.com/
