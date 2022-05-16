@@ -167,7 +167,7 @@ function OpportunitiesList() {
     return(
         <Container fluid>
             <Row>
-                <Col xs={3}>
+                <Col xs={12} md={3}>
                     <Row>
                         <Col xs={6}>
                             <FloatingLabel controlId='floatingSelect' label='Select sport'>
@@ -199,7 +199,7 @@ function OpportunitiesList() {
                         </Col>
                     </Row>
                 </Col>
-                <Col xs={9}>
+                <Col xs={12} md={9}>
                     <Row>
                         <Col>
                             {opportunities.items.length > 0 && opportunities.items.map((o, i) => {
