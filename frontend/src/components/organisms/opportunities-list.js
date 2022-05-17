@@ -8,6 +8,7 @@ import FloatingLabel from 'react-bootstrap/FloatingLabel';
 import Opportunity from '../molecules/opportunity';
 import BookmakerFilter from '../molecules/bookmaker-filter/bookmaker-filter';
 import OddsFilter from '../molecules/odds-filter/odds-filter';
+import MarketsFilter from '../molecules/markets-filter/markets-filter';
 
 const bookmakers = [
     {
@@ -56,6 +57,17 @@ const bookmakers = [
     }
 ]
 
+const markets = [
+    {
+        name: 'Head to Head',
+        key: 'h2h'
+    },
+    {
+        name: 'Totals',
+        key: 'totals'
+    }
+];
+
 function american(decimal) {
     if (decimal >= 2) {
         return {value: Math.ceil((decimal - 1) * 100), sign: 1}
@@ -71,6 +83,7 @@ function OpportunitiesList() {
     const [region, setRegion] = useState('us');
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
     const [selectedBookmakers, setSelectedBookmakers] = useState({ selected: [...bookmakers] });
+    const [selectedMarkets, setSelectedMarkets] = useState({ selected: [...markets ]});
     const [maxOdds, setMaxOdds] = useState(200);
     const [minOdds, setMinOdds] = useState(-200)
     const [maxSpread, setMaxSpread] = useState(20);
@@ -106,7 +119,17 @@ function OpportunitiesList() {
             bookmakersString = bookmakersString + b.key + ',';
         });
 
-        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/odds?sport=' + sport + '&region=' + region + '&bookmakers=' + bookmakersString)
+        bookmakersString = bookmakersString.substring(0, bookmakersString.length - 1);
+
+        let marketsString = '';
+
+        selectedMarkets.selected.forEach(m => {
+            marketsString = marketsString + m.key + ',';
+        });
+
+        marketsString = marketsString.substring(0, marketsString.length - 1);
+
+        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/odds?sport=' + sport + '&region=' + region + '&bookmakers=' + bookmakersString + '&markets=' + marketsString)
             .then(resp => resp.json())
             .then(
                 (result) => {
@@ -124,13 +147,13 @@ function OpportunitiesList() {
                     })
                 }
             )
-    }, [sport, region, selectedBookmakers]);
+    }, [sport, region, selectedBookmakers, selectedMarkets]);
 
     const bookmakerToggle = ((key) => {
         const bookmaker = bookmakers.filter(b => b.key === key)[0];
         let selected = selectedBookmakers.selected;
-        const index = selectedBookmakers.selected.indexOf(bookmaker);
-        
+        const index = selected.indexOf(bookmaker)
+
         if (index > -1) {
             selected.splice(index, 1);
         } else {
@@ -142,10 +165,26 @@ function OpportunitiesList() {
         });
     });
 
+    const marketToggle = ((key) => {
+        const market = markets.filter(m => m.key === key)[0];
+        let selected = selectedMarkets.selected;
+        const index = selected.indexOf(market);
+        
+        if (index > -1) {
+            selected.splice(index, 1);
+        } else {
+            selected.push(market);
+        }
+
+        setSelectedMarkets({
+            selected: selected
+        });
+    });
+
     const checkFilters = ((o) => {
 
-        const bet_one = american(o['home_win_price']);
-        const bet_two = american(o['away_win_price']);
+        const bet_one = american(o['bet_one_price']);
+        const bet_two = american(o['bet_two_price']);
 
         const spread = Math.abs(bet_one.value - bet_two.value);
 
@@ -186,6 +225,11 @@ function OpportunitiesList() {
                                     <option value='eu'>Europe</option>
                                 </Form.Select>
                             </FloatingLabel>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col>
+                            <MarketsFilter markets={markets} marketToggle={marketToggle} />
                         </Col>
                     </Row>
                     <Row>
