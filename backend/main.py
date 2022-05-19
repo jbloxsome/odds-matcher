@@ -23,7 +23,9 @@ def dutch_calculator(event: Event, stake: float):
     prices = event.prices
 
     for price in prices:
-        
+
+        valid = True
+
         bet_one_price = price.bet_one_price
         bet_one_bookmaker = price.bookmaker_title
         bet_one_bookmaker_key = price.bookmaker_key
@@ -33,24 +35,31 @@ def dutch_calculator(event: Event, stake: float):
             bet_two_bookmaker = _price.bookmaker_title
             bet_two_bookmaker_key = _price.bookmaker_key
 
-        opp = Opportunity(
-            trigger=price.trigger,
-            bet_one_bookmaker=bet_one_bookmaker,
-            bet_one_bookmaker_key=bet_one_bookmaker_key,
-            bet_one_price=bet_one_price,
-            bet_two_bookmaker=bet_two_bookmaker,
-            bet_two_bookmaker_key=bet_two_bookmaker_key,
-            bet_two_price=bet_two_price,
-            event=event,
-            stake=stake
-        )
-        opp.compute_round()
-        opp.compute_stakes()
-        opp.compute_returns()
-        opp.compute_profits()
-        opportunities.append(opp)
+            if price.trigger.type == 'spreads':
+                if price.trigger.over_points == _price.trigger.under_points or price.trigger.under_points == _price.trigger.over_points:
+                    valid = False
+
+        if valid == True:
+            opp = Opportunity(
+                trigger=price.trigger,
+                bet_one_bookmaker=bet_one_bookmaker,
+                bet_one_bookmaker_key=bet_one_bookmaker_key,
+                bet_one_price=bet_one_price,
+                bet_two_bookmaker=bet_two_bookmaker,
+                bet_two_bookmaker_key=bet_two_bookmaker_key,
+                bet_two_price=bet_two_price,
+                event=event,
+                stake=stake
+            )
+            opp.compute_round()
+            opp.compute_stakes()
+            opp.compute_returns()
+            opp.compute_profits()
+            opportunities.append(opp)
 
     for price in prices:
+
+        valid = True
         
         bet_two_price = price.bet_two_price
         bet_two_bookmaker = price.bookmaker_title
@@ -61,22 +70,27 @@ def dutch_calculator(event: Event, stake: float):
             bet_one_bookmaker = _price.bookmaker_title
             bet_one_bookmaker_key = _price.bookmaker_key
 
-        opp = Opportunity(
-            trigger=price.trigger,
-            bet_one_bookmaker=bet_one_bookmaker,
-            bet_one_bookmaker_key=bet_one_bookmaker_key,
-            bet_one_price=bet_one_price,
-            bet_two_bookmaker=bet_two_bookmaker,
-            bet_two_bookmaker_key=bet_two_bookmaker_key,
-            bet_two_price=bet_two_price,
-            event=event,
-            stake=stake
-        )
-        opp.compute_round()
-        opp.compute_stakes()
-        opp.compute_returns()
-        opp.compute_profits()
-        opportunities.append(opp)
+            if _price.trigger.type == 'spreads':
+                if _price.trigger.over_points == price.trigger.under_points or _price.trigger.under_points == price.trigger.over_points:
+                    valid = False
+
+        if valid == True:
+            opp = Opportunity(
+                trigger=price.trigger,
+                bet_one_bookmaker=bet_one_bookmaker,
+                bet_one_bookmaker_key=bet_one_bookmaker_key,
+                bet_one_price=bet_one_price,
+                bet_two_bookmaker=bet_two_bookmaker,
+                bet_two_bookmaker_key=bet_two_bookmaker_key,
+                bet_two_price=bet_two_price,
+                event=event,
+                stake=stake
+            )
+            opp.compute_round()
+            opp.compute_stakes()
+            opp.compute_returns()
+            opp.compute_profits()
+            opportunities.append(opp)
 
     return opportunities
 
@@ -160,7 +174,7 @@ async def odds(
                             over_points=home_price[0]['point'], 
                             under_points=away_price[0]['point'],
                             bet_one_dir=event.home_team + ' ' + str(home_price[0]['point']),
-                            bet_two_dir=event.away_team + ' ' + str(home_price[0]['point'])
+                            bet_two_dir=event.away_team + ' ' + str(away_price[0]['point'])
                         )
 
                     price = Price(
