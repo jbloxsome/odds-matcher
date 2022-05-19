@@ -23,7 +23,9 @@ def dutch_calculator(event: Event, stake: float):
     prices = event.prices
 
     for price in prices:
-        
+
+        valid = True
+
         bet_one_price = price.bet_one_price
         bet_one_bookmaker = price.bookmaker_title
         bet_one_bookmaker_key = price.bookmaker_key
@@ -33,24 +35,31 @@ def dutch_calculator(event: Event, stake: float):
             bet_two_bookmaker = _price.bookmaker_title
             bet_two_bookmaker_key = _price.bookmaker_key
 
-        opp = Opportunity(
-            trigger=price.trigger,
-            bet_one_bookmaker=bet_one_bookmaker,
-            bet_one_bookmaker_key=bet_one_bookmaker_key,
-            bet_one_price=bet_one_price,
-            bet_two_bookmaker=bet_two_bookmaker,
-            bet_two_bookmaker_key=bet_two_bookmaker_key,
-            bet_two_price=bet_two_price,
-            event=event,
-            stake=stake
-        )
-        opp.compute_round()
-        opp.compute_stakes()
-        opp.compute_returns()
-        opp.compute_profits()
-        opportunities.append(opp)
+            if price.trigger.type == 'spreads':
+                if price.trigger.over_points == _price.trigger.under_points or price.trigger.under_points == _price.trigger.over_points:
+                    valid = False
+
+        if valid == True:
+            opp = Opportunity(
+                trigger=price.trigger,
+                bet_one_bookmaker=bet_one_bookmaker,
+                bet_one_bookmaker_key=bet_one_bookmaker_key,
+                bet_one_price=bet_one_price,
+                bet_two_bookmaker=bet_two_bookmaker,
+                bet_two_bookmaker_key=bet_two_bookmaker_key,
+                bet_two_price=bet_two_price,
+                event=event,
+                stake=stake
+            )
+            opp.compute_round()
+            opp.compute_stakes()
+            opp.compute_returns()
+            opp.compute_profits()
+            opportunities.append(opp)
 
     for price in prices:
+
+        valid = True
         
         bet_two_price = price.bet_two_price
         bet_two_bookmaker = price.bookmaker_title
@@ -61,22 +70,27 @@ def dutch_calculator(event: Event, stake: float):
             bet_one_bookmaker = _price.bookmaker_title
             bet_one_bookmaker_key = _price.bookmaker_key
 
-        opp = Opportunity(
-            trigger=price.trigger,
-            bet_one_bookmaker=bet_one_bookmaker,
-            bet_one_bookmaker_key=bet_one_bookmaker_key,
-            bet_one_price=bet_one_price,
-            bet_two_bookmaker=bet_two_bookmaker,
-            bet_two_bookmaker_key=bet_two_bookmaker_key,
-            bet_two_price=bet_two_price,
-            event=event,
-            stake=stake
-        )
-        opp.compute_round()
-        opp.compute_stakes()
-        opp.compute_returns()
-        opp.compute_profits()
-        opportunities.append(opp)
+            if _price.trigger.type == 'spreads':
+                if _price.trigger.over_points == price.trigger.under_points or _price.trigger.under_points == price.trigger.over_points:
+                    valid = False
+
+        if valid == True:
+            opp = Opportunity(
+                trigger=price.trigger,
+                bet_one_bookmaker=bet_one_bookmaker,
+                bet_one_bookmaker_key=bet_one_bookmaker_key,
+                bet_one_price=bet_one_price,
+                bet_two_bookmaker=bet_two_bookmaker,
+                bet_two_bookmaker_key=bet_two_bookmaker_key,
+                bet_two_price=bet_two_price,
+                event=event,
+                stake=stake
+            )
+            opp.compute_round()
+            opp.compute_stakes()
+            opp.compute_returns()
+            opp.compute_profits()
+            opportunities.append(opp)
 
     return opportunities
 
@@ -105,7 +119,7 @@ async def odds(
     region: str = 'us', 
     stake: float = 100.00,
     bookmakers: str = 'betmgm,williamhill_us,draftkings,fanduel,unibet,pointsbetus,sugarhouse,twinspires,barstool,wynnbet,foxbet',
-    markets: str = 'h2h,totals'
+    markets: str = 'h2h,totals,spreads'
 ):
     api_key = os.environ.get('THE_ODDS_API_KEY')
     
@@ -125,7 +139,7 @@ async def odds(
 
             if bookmaker['key'] in bookmakers:
 
-                markets = [m for m in bookmaker['markets'] if m['key'] == 'h2h' or m['key'] == 'totals']
+                markets = [m for m in bookmaker['markets'] if m['key'] == 'h2h' or m['key'] == 'totals' or m['key'] == 'spreads']
 
                 for market in markets:
                     
@@ -142,7 +156,7 @@ async def odds(
                             bet_one_dir='Home Win',
                             bet_two_dir='Away Win'
                         )
-                    else:
+                    elif market['key'] == 'totals':
                         trigger = Trigger(
                             type='totals', 
                             home_side=event.home_team, 
@@ -152,14 +166,24 @@ async def odds(
                             bet_one_dir='Over ' + str(over_price[0]['point']),
                             bet_two_dir='Under ' + str(under_price[0]['point'])
                         )
+                    else:
+                        trigger = Trigger(
+                            type='spreads', 
+                            home_side=event.home_team, 
+                            away_side=event.away_team, 
+                            over_points=home_price[0]['point'], 
+                            under_points=away_price[0]['point'],
+                            bet_one_dir=event.home_team + ' ' + str(home_price[0]['point']),
+                            bet_two_dir=event.away_team + ' ' + str(away_price[0]['point'])
+                        )
 
                     price = Price(
                         bookmaker_key=bookmaker['key'],
                         bookmaker_title=bookmaker['title'], 
                         last_updated=bookmaker['last_update'],
                         trigger=trigger,
-                        bet_one_price=home_price[0]['price'] if market['key'] == 'h2h' else over_price[0]['price'],
-                        bet_two_price=away_price[0]['price'] if market['key'] == 'h2h' else under_price[0]['price']
+                        bet_one_price=home_price[0]['price'] if market['key'] == 'h2h' or market['key'] == 'spreads' else over_price[0]['price'],
+                        bet_two_price=away_price[0]['price'] if market['key'] == 'h2h' or market['key'] == 'spreads' else under_price[0]['price']
                     )
 
                     event.addPrice(price)

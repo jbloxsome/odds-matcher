@@ -4,6 +4,7 @@ import Row from 'react-bootstrap/Row';
 import Container from 'react-bootstrap/Container';
 import Form from 'react-bootstrap/Form';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
+import Spinner from 'react-bootstrap/Spinner';
 
 import Opportunity from '../molecules/opportunity';
 import BookmakerFilter from '../molecules/bookmaker-filter/bookmaker-filter';
@@ -65,6 +66,10 @@ const markets = [
     {
         name: 'Totals',
         key: 'totals'
+    },
+    {
+        name: 'Spreads',
+        key: 'spreads'
     }
 ];
 
@@ -113,6 +118,13 @@ function OpportunitiesList() {
     }, []);
 
     useEffect(() => {
+
+        setOpportunities({
+            isLoading: true,
+            items: [],
+            error: null
+        });
+
         let bookmakersString = '';
 
         selectedBookmakers.selected.forEach(b => {
@@ -244,30 +256,39 @@ function OpportunitiesList() {
                     </Row>
                 </Col>
                 <Col xs={12} md={9}>
-                    <Row>
-                        <Col>
-                            {opportunities.items.length > 0 && opportunities.items.map((o, i) => {
-                                if (checkFilters(o)) {
-                                    return (
-                                        <Row key={i}>
-                                            <Col>
-                                                <Opportunity opportunity={o} />
-                                            </Col>
-                                        </Row>
-                                    )
-                                } else {
-                                    return (<></>)
+                    {!opportunities.isLoading && 
+                        <Row>
+                            <Col>
+                                {opportunities.items.length > 0 && opportunities.items.map((o, i) => {
+                                    if (checkFilters(o)) {
+                                        return (
+                                            <Row key={i}>
+                                                <Col>
+                                                    <Opportunity opportunity={o} />
+                                                </Col>
+                                            </Row>
+                                        )
+                                    } else {
+                                        return (<></>)
+                                    }
+                                })}
+                                {opportunities.items.length === 0 && 
+                                    <Row style={{'paddingTop': '1rem'}}>
+                                        <Col>
+                                            <p>Sorry, no odds were found for this market.</p>
+                                        </Col>
+                                    </Row>
                                 }
-                            })}
-                            {opportunities.items.length === 0 && 
-                                <Row style={{'paddingTop': '1rem'}}>
-                                    <Col>
-                                        <p>Sorry, no odds were found for this market.</p>
-                                    </Col>
-                                </Row>
-                            }
-                        </Col>
-                    </Row>
+                            </Col>
+                        </Row>
+                    }
+                    {opportunities.isLoading &&
+                        <Row className='align-items-center' style={{ height: '90vh' }}>
+                            <Col md={{ span: 2, offset: 6}}>
+                                <Spinner animation='border' />
+                            </Col>
+                        </Row>
+                    }
                 </Col>
             </Row>
             
