@@ -65,6 +65,10 @@ const markets = [
     {
         name: 'Totals',
         key: 'totals'
+    },
+    {
+        name: 'Spreads',
+        key: 'spreads'
     }
 ];
 
