@@ -23,7 +23,7 @@ function OddsFilter({ minOdds, maxOdds, maxSpread, setMinOdds, setMaxOdds, setMa
             <Row style={{'marginTop': '1rem'}}>
                 <Col>
                     <Form.Label>Maximum Spread</Form.Label>
-                    <Form.Range onChange={(e) => setMaxSpread(e.target.value)} value={maxSpread} min={0} max={40} />
+                    <Form.Range onChange={(e) => setMaxSpread(e.target.value)} value={maxSpread} min={0} max={400} />
                     <p>{maxSpread}</p>
                 </Col>
             </Row>

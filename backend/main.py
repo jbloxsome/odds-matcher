@@ -40,6 +40,9 @@ def evaluate_opportunity(bet_one, bet_two, event, stake):
         if bet_one.trigger.over_points == bet_two.trigger.over_points or bet_one.trigger.under_points == bet_two.trigger.under_points:
             valid = False
 
+    if bet_one_bookmaker == bet_two_bookmaker:
+        valid = False
+
     if valid == True:
         opp = Opportunity(
             trigger = bet_one.trigger,
@@ -64,15 +67,7 @@ def dutch_calculator(event: Event, stake: float):
     # for a given event, compute dutching opportunities between any two bookmakers
     prices = event.prices
 
-    opps = [evaluate_opportunity(price, _price, event, stake) for price in prices for _price in prices]
-
-    # b1_opportunities = [compute_b1_opps(price, prices, event, stake) for price in prices]
-    # # b2_opportunities = [compute_b2_opps(price, prices, event, stake) for price in prices]
-
-    # b1_opportunities = [item for sublist in b1_opportunities for item in sublist]
-    # # b2_opportunities = [item for sublist in b2_opportunities for item in sublist]
-
-    return opps
+    return [evaluate_opportunity(price, _price, event, stake) for price in prices for _price in prices]
 
 app = FastAPI()
 
@@ -174,7 +169,7 @@ async def odds(
 
     opportunities.sort(key = lambda x: x.round)
 
-    return opportunities[0:200]
+    return opportunities[0:2000]
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
