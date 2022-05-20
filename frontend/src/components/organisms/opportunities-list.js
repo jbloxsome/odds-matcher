@@ -84,14 +84,14 @@ function american(decimal) {
 function OpportunitiesList() {
 
     const [sports, setSports] = useState({ isLoading: true, items: [], error: null });
-    const [sport, setSport] = useState('baseball_mlb');
+    const [sport, setSport] = useState('basketball_nba');
     const [region, setRegion] = useState('us');
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
     const [selectedBookmakers, setSelectedBookmakers] = useState({ selected: [...bookmakers] });
     const [selectedMarkets, setSelectedMarkets] = useState({ selected: [...markets ]});
     const [maxOdds, setMaxOdds] = useState(1000);
-    const [minOdds, setMinOdds] = useState(0)
-    const [maxSpread, setMaxSpread] = useState(20);
+    const [minOdds, setMinOdds] = useState(200)
+    const [maxSpread, setMaxSpread] = useState(400);
 
     useEffect(() => {
         fetch(process.env.REACT_APP_API_ENDPOINT + '/api/sports')
@@ -224,7 +224,7 @@ function OpportunitiesList() {
                     <Row>
                         <Col xs={6}>
                             <FloatingLabel controlId='floatingSelect' label='Select sport'>
-                                <Form.Select onChange={e => setSport(e.target.value)} aria-label='Select sport'>
+                                <Form.Select onChange={e => setSport(e.target.value)} aria-label='Select sport' value={sport}>
                                     {sports.items.map((s, i) => {
                                         return <option value={s.key} key={i}>{s.description}</option>
                                     })}
