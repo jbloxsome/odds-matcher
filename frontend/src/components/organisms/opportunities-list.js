@@ -89,8 +89,8 @@ function OpportunitiesList() {
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
     const [selectedBookmakers, setSelectedBookmakers] = useState({ selected: [...bookmakers] });
     const [selectedMarkets, setSelectedMarkets] = useState({ selected: [...markets ]});
-    const [maxOdds, setMaxOdds] = useState(200);
-    const [minOdds, setMinOdds] = useState(-200)
+    const [maxOdds, setMaxOdds] = useState(1000);
+    const [minOdds, setMinOdds] = useState(0)
     const [maxSpread, setMaxSpread] = useState(20);
 
     useEffect(() => {
@@ -204,11 +204,13 @@ function OpportunitiesList() {
             return false;
         }
 
-        if (bet_one.value > maxOdds || bet_two.value > maxOdds) {
+        const biggest = Math.max(bet_one.value, bet_two.value)
+
+        if (biggest > maxOdds) {
             return false;
         }
 
-        if (bet_one.value * bet_one.sign < minOdds || bet_two.value * bet_two.sign < minOdds) {
+        if (biggest < minOdds) {
             return false;
         }
 

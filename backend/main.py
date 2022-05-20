@@ -16,83 +16,63 @@ def get_us_odds(api_key, region, sport, markets):
     response = requests.get(url)
     return response.json()
 
-def dutch_calculator(event: Event, stake: float):
-    opportunities = []
+def evaluate_opportunity(bet_one, bet_two, event, stake):
+    valid = True
 
+    bet_one_price = bet_one.bet_one_price
+    bet_one_bookmaker = bet_one.bookmaker_title
+    bet_one_bookmaker_key = bet_one.bookmaker_key
+
+    bet_two_price = bet_two.bet_two_price
+    bet_two_bookmaker = bet_two.bookmaker_title
+    bet_two_bookmaker_key = bet_two.bookmaker_key
+
+    bet_one_percent = 100 / bet_one_price
+    bet_two_percent = 100 / bet_two_price
+
+    if bet_one_percent + bet_two_percent < 90:
+        valid = False
+
+    if bet_one.trigger.type != bet_two.trigger.type:
+        valid = False
+
+    if bet_one.trigger.type == 'spreads':
+        if bet_one.trigger.over_points == bet_two.trigger.over_points or bet_one.trigger.under_points == bet_two.trigger.under_points:
+            valid = False
+
+    if valid == True:
+        opp = Opportunity(
+            trigger = bet_one.trigger,
+            bet_one_bookmaker=bet_one_bookmaker,
+            bet_one_bookmaker_key=bet_one_bookmaker_key,
+            bet_one_price=bet_one_price,
+            bet_two_bookmaker=bet_two_bookmaker,
+            bet_two_bookmaker_key=bet_two_bookmaker_key,
+            bet_two_price=bet_two_price,
+            event=event,
+            stake=stake
+        )
+
+        opp.compute_round()
+        opp.compute_stakes()
+        opp.compute_returns()
+        opp.compute_profits()
+
+        return opp
+
+def dutch_calculator(event: Event, stake: float):
     # for a given event, compute dutching opportunities between any two bookmakers
     prices = event.prices
 
-    for price in prices:
+    opps = [evaluate_opportunity(price, _price, event, stake) for price in prices for _price in prices]
 
-        valid = True
+    # b1_opportunities = [compute_b1_opps(price, prices, event, stake) for price in prices]
+    # # b2_opportunities = [compute_b2_opps(price, prices, event, stake) for price in prices]
 
-        bet_one_price = price.bet_one_price
-        bet_one_bookmaker = price.bookmaker_title
-        bet_one_bookmaker_key = price.bookmaker_key
+    # b1_opportunities = [item for sublist in b1_opportunities for item in sublist]
+    # # b2_opportunities = [item for sublist in b2_opportunities for item in sublist]
 
-        for _price in prices:
-            bet_two_price = _price.bet_two_price
-            bet_two_bookmaker = _price.bookmaker_title
-            bet_two_bookmaker_key = _price.bookmaker_key
-
-            if price.trigger.type == 'spreads':
-                if price.trigger.over_points == _price.trigger.under_points or price.trigger.under_points == _price.trigger.over_points:
-                    valid = False
-
-        if valid == True:
-            opp = Opportunity(
-                trigger=price.trigger,
-                bet_one_bookmaker=bet_one_bookmaker,
-                bet_one_bookmaker_key=bet_one_bookmaker_key,
-                bet_one_price=bet_one_price,
-                bet_two_bookmaker=bet_two_bookmaker,
-                bet_two_bookmaker_key=bet_two_bookmaker_key,
-                bet_two_price=bet_two_price,
-                event=event,
-                stake=stake
-            )
-            opp.compute_round()
-            opp.compute_stakes()
-            opp.compute_returns()
-            opp.compute_profits()
-            opportunities.append(opp)
-
-    for price in prices:
-
-        valid = True
-        
-        bet_two_price = price.bet_two_price
-        bet_two_bookmaker = price.bookmaker_title
-        bet_two_bookmaker_key = price.bookmaker_key
-
-        for _price in prices:
-            bet_one_price = _price.bet_one_price
-            bet_one_bookmaker = _price.bookmaker_title
-            bet_one_bookmaker_key = _price.bookmaker_key
-
-            if _price.trigger.type == 'spreads':
-                if _price.trigger.over_points == price.trigger.under_points or _price.trigger.under_points == price.trigger.over_points:
-                    valid = False
-
-        if valid == True:
-            opp = Opportunity(
-                trigger=price.trigger,
-                bet_one_bookmaker=bet_one_bookmaker,
-                bet_one_bookmaker_key=bet_one_bookmaker_key,
-                bet_one_price=bet_one_price,
-                bet_two_bookmaker=bet_two_bookmaker,
-                bet_two_bookmaker_key=bet_two_bookmaker_key,
-                bet_two_price=bet_two_price,
-                event=event,
-                stake=stake
-            )
-            opp.compute_round()
-            opp.compute_stakes()
-            opp.compute_returns()
-            opp.compute_profits()
-            opportunities.append(opp)
-
-    return opportunities
+    return opps
 
 app = FastAPI()
 
@@ -125,8 +105,6 @@ async def odds(
     
     # fetch the latest odds
     odds = get_us_odds(api_key=api_key, sport=sport, region=region, markets=markets)
-
-    opportunities = []
 
     # parse list of bookmakers
     bookmakers = bookmakers.split(',')
@@ -189,13 +167,14 @@ async def odds(
                     event.addPrice(price)
 
         opps = dutch_calculator(event, stake)
+
+        opps = [o for o in opps if o is not None]
         
-        for opp in opps:
-            opportunities.append(opp)
+        opportunities = [o for o in opps]
 
     opportunities.sort(key = lambda x: x.round)
 
-    return opportunities
+    return opportunities[0:200]
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
