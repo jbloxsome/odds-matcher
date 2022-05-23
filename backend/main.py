@@ -17,51 +17,62 @@ def get_us_odds(api_key, region, sport, markets):
     return response.json()
 
 def evaluate_opportunity(bet_one, bet_two, event, stake):
-    valid = True
+    if (bet_one.trigger.type == bet_two.trigger.type):
 
-    bet_one_price = bet_one.bet_one_price
-    bet_one_bookmaker = bet_one.bookmaker_title
-    bet_one_bookmaker_key = bet_one.bookmaker_key
+        valid = True
 
-    bet_two_price = bet_two.bet_two_price
-    bet_two_bookmaker = bet_two.bookmaker_title
-    bet_two_bookmaker_key = bet_two.bookmaker_key
+        bet_one_price = bet_one.bet_one_price
+        bet_one_bookmaker = bet_one.bookmaker_title
+        bet_one_bookmaker_key = bet_one.bookmaker_key
 
-    bet_one_percent = 100 / bet_one_price
-    bet_two_percent = 100 / bet_two_price
+        bet_two_price = bet_two.bet_two_price
+        bet_two_bookmaker = bet_two.bookmaker_title
+        bet_two_bookmaker_key = bet_two.bookmaker_key
 
-    if bet_one_percent + bet_two_percent < 90:
-        valid = False
+        bet_one_percent = 100 / bet_one_price
+        bet_two_percent = 100 / bet_two_price
 
-    if bet_one.trigger.type != bet_two.trigger.type:
-        valid = False
+        if bet_one.trigger.type == 'spreads':
+            if (bet_one.trigger.over_points != -1 * bet_two.trigger.under_points) or (bet_one.trigger.under_points != -1 * bet_two.trigger.over_points):
+                valid = False
 
-    if bet_one.trigger.type == 'spreads':
-        if bet_one.trigger.over_points == bet_two.trigger.over_points or bet_one.trigger.under_points == bet_two.trigger.under_points:
+            if (bet_one.bet_one_price < 2) and (bet_two.bet_two_price < 2):
+                valid = False
+
+        if bet_one.trigger.type == 'totals':
+            if (bet_one.trigger.over_points != bet_two.trigger.under_points) or (bet_one.trigger.under_points != bet_two.trigger.over_points):
+                valid = False
+
+            if (bet_one.bet_one_price < 2) and (bet_two.bet_two_price < 2):
+                valid = False
+
+        if bet_one_bookmaker == bet_two_bookmaker:
             valid = False
+        
+        # this is a bit of a sanity check, we would never really expect to see a book be under round by more the 5%.
+        if bet_one_percent + bet_two_percent < 95:
+            valid = False
+        
+        if valid == True:
 
-    if bet_one_bookmaker == bet_two_bookmaker:
-        valid = False
+            opp = Opportunity(
+                trigger = bet_one.trigger,
+                bet_one_bookmaker=bet_one_bookmaker,
+                bet_one_bookmaker_key=bet_one_bookmaker_key,
+                bet_one_price=bet_one_price,
+                bet_two_bookmaker=bet_two_bookmaker,
+                bet_two_bookmaker_key=bet_two_bookmaker_key,
+                bet_two_price=bet_two_price,
+                event=event,
+                stake=stake
+            )
 
-    if valid == True:
-        opp = Opportunity(
-            trigger = bet_one.trigger,
-            bet_one_bookmaker=bet_one_bookmaker,
-            bet_one_bookmaker_key=bet_one_bookmaker_key,
-            bet_one_price=bet_one_price,
-            bet_two_bookmaker=bet_two_bookmaker,
-            bet_two_bookmaker_key=bet_two_bookmaker_key,
-            bet_two_price=bet_two_price,
-            event=event,
-            stake=stake
-        )
+            opp.compute_round()
+            opp.compute_stakes()
+            opp.compute_returns()
+            opp.compute_profits()
 
-        opp.compute_round()
-        opp.compute_stakes()
-        opp.compute_returns()
-        opp.compute_profits()
-
-        return opp
+            return opp
 
 def dutch_calculator(event: Event, stake: float):
     # for a given event, compute dutching opportunities between any two bookmakers
@@ -136,6 +147,7 @@ async def odds(
                             away_side=event.away_team, 
                             over_points=over_price[0]['point'], 
                             under_points=under_price[0]['point'],
+                            mid_point=over_price[0]['point'],
                             bet_one_dir='Over ' + str(over_price[0]['point']),
                             bet_two_dir='Under ' + str(under_price[0]['point'])
                         )
@@ -146,6 +158,7 @@ async def odds(
                             away_side=event.away_team, 
                             over_points=home_price[0]['point'], 
                             under_points=away_price[0]['point'],
+                            mid_point=home_price[0]['point'],
                             bet_one_dir=event.home_team + ' ' + str(home_price[0]['point']),
                             bet_two_dir=event.away_team + ' ' + str(away_price[0]['point'])
                         )
@@ -169,7 +182,7 @@ async def odds(
 
     opportunities.sort(key = lambda x: x.round)
 
-    return opportunities[0:2000]
+    return opportunities
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
