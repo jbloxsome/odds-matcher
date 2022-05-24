@@ -48,9 +48,6 @@ def evaluate_opportunity(bet_one, bet_two, event, stake):
             bet_two_price = bet_two.price
             bet_two_bookmaker = bet_two.sportsbook_name
 
-            bet_one_percent = 100 / bet_one_price
-            bet_two_percent = 100 / bet_two_price
-
             # Moneyline bets are bets for home win or away win. The bet is only valid if bet one is for home win and bet two is for away win or vice versa.
             if bet_one.market_name == 'Moneyline':
                 if bet_one.name == bet_two.name:

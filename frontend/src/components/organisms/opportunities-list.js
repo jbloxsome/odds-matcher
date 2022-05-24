@@ -149,8 +149,8 @@ function OpportunitiesList() {
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
     const [selectedBookmakers, setSelectedBookmakers] = useState({ selected: [...bookmakers] });
     const [maxOdds, setMaxOdds] = useState(1000);
-    const [minOdds, setMinOdds] = useState(200)
-    const [maxSpread, setMaxSpread] = useState(400);
+    const [minOdds, setMinOdds] = useState(0)
+    const [maxSpread, setMaxSpread] = useState(1000);
 
 
     useEffect(() => {

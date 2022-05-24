@@ -3,7 +3,7 @@ import Col from 'react-bootstrap/Col';
 import Row from 'react-bootstrap/Row';
 import Moment from 'react-moment';
 
-// import Logo from '../atoms/logo/logo';
+import Logo from '../atoms/logo/logo';
 
 import './opportunity.css';
 
@@ -38,7 +38,7 @@ function Opportunity({ opportunity }) {
                     </Col>
                     <Col xs={4} md={2}>
                         <h6>Bet 1</h6>
-                        {/* <Logo bookmaker_key={opportunity.bet_one_bookmaker_key} /> */}
+                        <Logo bookmaker_key={opportunity.bet_one_bookmaker} />
                         <h6>{opportunity.bet_one_bookmaker} - {opportunity.bet_one_name}</h6>
                         <p>Odds: {american(opportunity.bet_one_price)}</p>
                         <p>Stake: ${opportunity.bet_one_stake.toFixed(2)}</p>
@@ -46,7 +46,7 @@ function Opportunity({ opportunity }) {
                     </Col>
                     <Col xs={4} md={2}>
                         <h6>Bet 2</h6>
-                        {/* <Logo bookmaker_key={opportunity.bet_two_bookmaker_key} /> */}
+                        <Logo bookmaker_key={opportunity.bet_two_bookmaker} />
                         <h6>{opportunity.bet_two_bookmaker} - {opportunity.bet_two_name}</h6>
                         <p>Odds: {american(opportunity.bet_two_price)}</p>
                         <p>Stake: ${opportunity.bet_two_stake.toFixed(2)}</p>
