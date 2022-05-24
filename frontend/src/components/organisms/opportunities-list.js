@@ -9,69 +9,131 @@ import Spinner from 'react-bootstrap/Spinner';
 import Opportunity from '../molecules/opportunity';
 import BookmakerFilter from '../molecules/bookmaker-filter/bookmaker-filter';
 import OddsFilter from '../molecules/odds-filter/odds-filter';
-import MarketsFilter from '../molecules/markets-filter/markets-filter';
 
 const bookmakers = [
     {
-        name: 'BetMGM',
-        key: 'betmgm'
+        name: 'Borgata',
+        key: 'Borgata'
     },
     {
-        name: 'William Hill',
-        key: 'williamhill_us'
+        name: 'Golden Nugget',
+        key: 'Golden Nugget'
     },
     {
-        name: 'DraftKings',
-        key: 'draftkings'
+        name: 'SuperBook',
+        key: 'SuperBook'
     },
     {
-        name: 'FanDuel',
-        key: 'fanduel'
+        name: 'The Score',
+        key: 'theScore'
+    },
+    {
+        name: 'BetRivers',
+        key: 'BetRivers'
+    },
+    {
+        name: 'Caesars',
+        key: 'Caesars'
+    },
+    {
+        name: 'Sports Interaction',
+        key: 'Sports Interaction'
+    },
+    {
+        name: '888Sport',
+        key: '888sport'
+    },
+    {
+        name: 'LeoVegas',
+        key: 'LeoVegas'
+    },
+    {
+        name: 'Betfred',
+        key: 'Betfred'
+    },
+    {
+        name: 'Betway',
+        key: 'Betway'
+    },
+    {
+        name: 'Bet365',
+        key: 'bet365'
     },
     {
         name: 'Unibet',
         key: 'unibet'
     },
     {
+        name: 'BetMGM',
+        key: 'BetMGM'
+    },
+    {
+        name: 'William Hill',
+        key: 'William Hill'
+    },
+    {
+        name: 'DraftKings',
+        key: 'DraftKings'
+    },
+    {
+        name: 'FanDuel',
+        key: 'FanDuel'
+    },
+    {
+        name: 'FOX Bet',
+        key: 'FOX bet'
+    },
+    {
         name: 'PointsBet',
-        key: 'pointsbetus'
+        key: 'PointsBet'
     },
     {
         name: 'SugarHouse',
-        key: 'sugarhouse'
+        key: 'SugarHouse'
     },
     {
         name: 'TwinSpires',
-        key: 'twinspires'
+        key: 'TwinSpires'
     },
     {
-        name: 'Barstool Sports',
-        key: 'barstool'
+        name: 'Barstool',
+        key: 'Barstool'
     },
     {
-        name: 'Wynnbet',
-        key: 'wynnbet'
-    },
-    {
-        name: 'FoxBET',
-        key: 'foxbet'
+        name: 'WynnBET',
+        key: 'WynnBET'
     }
 ]
 
 const markets = [
     {
-        name: 'Head to Head',
-        key: 'h2h'
+        name: 'Moneyline',
+        key: 'Moneyline'
     },
     {
-        name: 'Totals',
-        key: 'totals'
+        name: 'Total Points',
+        key: 'Total Points'
     },
     {
-        name: 'Spreads',
-        key: 'spreads'
+        name: 'Point Spread',
+        key: 'Point Spread'
     }
 ];
+
+const sports = [
+    {
+        name: 'Basketball',
+        key: 'basketball'
+    },
+    {
+        name: 'Baseball',
+        key: 'baseball',
+    },
+    {
+        name: 'Hockey',
+        key: 'hockey'
+    }
+]
 
 function american(decimal) {
     if (decimal >= 2) {
@@ -82,40 +144,14 @@ function american(decimal) {
 }
 
 function OpportunitiesList() {
-
-    const [sports, setSports] = useState({ isLoading: true, items: [], error: null });
-    const [sport, setSport] = useState('basketball_nba');
-    const [region, setRegion] = useState('us');
+    const [sport, setSport] = useState('basketball');
+    const [market, setMarket] = useState('Moneyline');
     const [opportunities, setOpportunities] = useState({ isLoading: true, items: [], error: null });
     const [selectedBookmakers, setSelectedBookmakers] = useState({ selected: [...bookmakers] });
-    const [selectedMarkets, setSelectedMarkets] = useState({ selected: [...markets ]});
     const [maxOdds, setMaxOdds] = useState(1000);
     const [minOdds, setMinOdds] = useState(200)
     const [maxSpread, setMaxSpread] = useState(400);
 
-    useEffect(() => {
-        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/sports')
-            .then(resp => resp.json())
-            .then(
-                (result) => {
-
-                    const sports = result.filter(i => i.key.includes('basketball') || i.key.includes('hockey') || i.key.includes('baseball'))
-
-                    setSports({
-                        isLoading: false,
-                        items: sports,
-                        error: null
-                    });
-                },
-                (error) => {
-                    setSports({
-                        isLoading: false,
-                        items: [],
-                        error: error
-                    })
-                }
-            )
-    }, []);
 
     useEffect(() => {
 
@@ -133,15 +169,7 @@ function OpportunitiesList() {
 
         bookmakersString = bookmakersString.substring(0, bookmakersString.length - 1);
 
-        let marketsString = '';
-
-        selectedMarkets.selected.forEach(m => {
-            marketsString = marketsString + m.key + ',';
-        });
-
-        marketsString = marketsString.substring(0, marketsString.length - 1);
-
-        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/odds?sport=' + sport + '&region=' + region + '&bookmakers=' + bookmakersString + '&markets=' + marketsString)
+        fetch(process.env.REACT_APP_API_ENDPOINT + '/api/odds?sport=' + sport + '&bookmakers=' + bookmakersString + '&market=' + market)
             .then(resp => resp.json())
             .then(
                 (result) => {
@@ -159,7 +187,7 @@ function OpportunitiesList() {
                     })
                 }
             )
-    }, [sport, region, selectedBookmakers, selectedMarkets]);
+    }, [sport, market, selectedBookmakers]);
 
     const bookmakerToggle = ((key) => {
         const bookmaker = bookmakers.filter(b => b.key === key)[0];
@@ -173,22 +201,6 @@ function OpportunitiesList() {
         }
 
         setSelectedBookmakers({
-            selected: selected
-        });
-    });
-
-    const marketToggle = ((key) => {
-        const market = markets.filter(m => m.key === key)[0];
-        let selected = selectedMarkets.selected;
-        const index = selected.indexOf(market);
-        
-        if (index > -1) {
-            selected.splice(index, 1);
-        } else {
-            selected.push(market);
-        }
-
-        setSelectedMarkets({
             selected: selected
         });
     });
@@ -225,25 +237,20 @@ function OpportunitiesList() {
                         <Col xs={6}>
                             <FloatingLabel controlId='floatingSelect' label='Select sport'>
                                 <Form.Select onChange={e => setSport(e.target.value)} aria-label='Select sport' value={sport}>
-                                    {sports.items.map((s, i) => {
-                                        return <option value={s.key} key={i}>{s.description}</option>
+                                    {sports.map((s, i) => {
+                                        return <option value={s.key} key={i}>{s.name}</option>
                                     })}
                                 </Form.Select>
                             </FloatingLabel>
                         </Col>
                         <Col xs={6}>
-                            <FloatingLabel controlId='floatingSelect' label='Select region'>
-                                <Form.Select onChange={e => setRegion(e.target.value)} aria-label='Select region'>
-                                    <option value='us'>United States + Canada</option>
-                                    <option value='uk'>United Kingdom</option>
-                                    <option value='eu'>Europe</option>
+                            <FloatingLabel controlId='floatingSelect' label='Select market'>
+                                <Form.Select onChange={e => setMarket(e.target.value)} aria-label='Select market'>
+                                    {markets.map((m, i) => {
+                                        return <option value={m.key} key={i}>{m.name}</option>
+                                    })}
                                 </Form.Select>
                             </FloatingLabel>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <MarketsFilter markets={markets} marketToggle={marketToggle} />
                         </Col>
                     </Row>
                     <Row>
