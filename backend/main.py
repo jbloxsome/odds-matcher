@@ -17,6 +17,10 @@ def get_us_odds(api_key, region, sport, markets):
     return response.json()
 
 def evaluate_opportunity(bet_one, bet_two, event, stake):
+    # Takes two bets and computes the potential opportunity - i.e what would happen if you placed both bets (regardless of the actual outcome
+    # of the underlying event.)
+    
+    # Tigger type needs to be the same otherwise the bets aren't opposing.
     if (bet_one.trigger.type == bet_two.trigger.type):
 
         valid = True
@@ -32,20 +36,28 @@ def evaluate_opportunity(bet_one, bet_two, event, stake):
         bet_one_percent = 100 / bet_one_price
         bet_two_percent = 100 / bet_two_price
 
+        # For spreads bets we need to ensure that the over/under prices are opposite for each bet i.e if bet_one is for the home team to win by over 1.5 goals
+        # then bet 2 needs to be for the home team to not win by over 1.5 goals to have a valid opportunity.
         if bet_one.trigger.type == 'spreads':
             if (bet_one.trigger.over_points != -1 * bet_two.trigger.under_points) or (bet_one.trigger.under_points != -1 * bet_two.trigger.over_points):
                 valid = False
 
+            # Don't return situations where odds < 2 because these opportunities tend to be too small for much profit.
             if (bet_one.bet_one_price < 2) and (bet_two.bet_two_price < 2):
                 valid = False
 
+        # Similar to spreads bets in that we need to ensure that we're evaluating two opposing bets here, totals is slightly different to spreads however.
+        # If bet_one is for over 1.5 goals, then bet_two would have to be for under 1.5 goals.
         if bet_one.trigger.type == 'totals':
             if (bet_one.trigger.over_points != bet_two.trigger.under_points) or (bet_one.trigger.under_points != bet_two.trigger.over_points):
                 valid = False
 
+            # Don't return situations where odds < 2 because these opportunities tend to be too small for much profit.
             if (bet_one.bet_one_price < 2) and (bet_two.bet_two_price < 2):
                 valid = False
 
+        # We could evaluate opposing bets for the same bookmaker, but it's not worth returning them as an opportunity because the bookmaker will likely
+        # always ensure that their book is over round.
         if bet_one_bookmaker == bet_two_bookmaker:
             valid = False
         
@@ -53,6 +65,7 @@ def evaluate_opportunity(bet_one, bet_two, event, stake):
         if bet_one_percent + bet_two_percent < 95:
             valid = False
         
+        # Once we've verified that we're evaluating two opposing bets, we can compute the opportunity.
         if valid == True:
 
             opp = Opportunity(
@@ -75,7 +88,7 @@ def evaluate_opportunity(bet_one, bet_two, event, stake):
             return opp
 
 def dutch_calculator(event: Event, stake: float):
-    # for a given event, compute dutching opportunities between any two bookmakers
+    # For a given event, compute all of the dutching opportunities.
     prices = event.prices
 
     return [evaluate_opportunity(price, _price, event, stake) for price in prices for _price in prices]
@@ -90,15 +103,19 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+# Health check endpoint - this is useful when deploying in GKE cluster as the readiness probe will query this endpoint and expect
+# a 200 response if all is ok.
 @app.get("/")
 async def health():
     return '{"healthy": "true"}'
 
+# Returns a list of available sports.
 @app.get("/api/sports")
 async def sports():
     api_key = os.environ.get('THE_ODDS_API_KEY')
     return get_sports(api_key=api_key)
 
+# Returns a list of matched opportunities.
 @app.get("/api/odds")
 async def odds(
     sport: str = 'upcoming', 
@@ -115,6 +132,8 @@ async def odds(
     # parse list of bookmakers
     bookmakers = bookmakers.split(',')
 
+    # loop through all of the returned odds and create an Event object for each event, Event objects store the odds from each bookmaker
+    # for the given event.
     for odd in odds:
 
         event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
@@ -132,6 +151,7 @@ async def odds(
                     over_price = [p for p in market['outcomes'] if p['name'] == 'Over']
                     under_price = [p for p in market['outcomes'] if p['name'] == 'Under']
 
+                    # The type of Trigger will depend on the market (h2h, totals, spreads).
                     if market['key'] == 'h2h':
                         trigger = Trigger(
                             type='h2h', 
@@ -174,15 +194,17 @@ async def odds(
 
                     event.addPrice(price)
 
+        # Calculate all dutching opportunities for the event
         opps = dutch_calculator(event, stake)
 
+        # Some opportunities will be invalid, the dutching calculator currently places a None entry
+        # in the list for these. This line removed those values.
         opps = [o for o in opps if o is not None]
-        
-        opportunities = [o for o in opps]
 
-    opportunities.sort(key = lambda x: x.round)
+    # Sort by round to return the most profitable opportunities first
+    opps.sort(key = lambda x: x.round)
 
-    return opportunities
+    return opps
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
