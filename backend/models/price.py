@@ -1,23 +1,25 @@
 import json
 
-from .trigger import Trigger
-
 class Price:
     def __init__(
         self,
-        bookmaker_key: str, 
-        bookmaker_title: str,
-        last_updated: str, 
-        trigger: Trigger, 
-        bet_one_price: float, 
-        bet_two_price: float,
+        id: str,
+        sportsbook_name: str,
+        name: str,
+        price: float,
+        checked_date: str,
+        bet_points: float,
+        market_name: str,
+        deep_link_url: str
     ) -> None:
-        self.bookmaker_key = bookmaker_key
-        self.bookmaker_title = bookmaker_title
-        self.last_updated = last_updated
-        self.trigger = trigger
-        self.bet_one_price = bet_one_price
-        self.bet_two_price = bet_two_price
+        self.id = id
+        self.sportsbook_name = sportsbook_name
+        self.name = name
+        self.price = price
+        self.checked_date = checked_date
+        self.bet_points = bet_points
+        self.market_name = market_name
+        self.deep_link_url = deep_link_url
 
     def toJson(self):
         return json.dumps(self, default = lambda o: o.__dict__, sort_keys = True, indent = 4)

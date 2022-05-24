@@ -11,7 +11,7 @@ function american(decimal) {
     if (decimal >= 2) {
         return '+' + Math.ceil((decimal - 1) * 100).toString()
     } else {
-        return '-' + (-1 * Math.ceil(-100 / (decimal - 1))).toString()
+        return (-1 * Math.ceil(-100 / (decimal - 1))).toString()
     }
 }
 
@@ -26,7 +26,7 @@ function Opportunity({ opportunity }) {
                     </Col>
                     <Col xs={4} md={2}>
                         <h6>Competition</h6>
-                        <p>{opportunity.event.sport_title}</p>
+                        <p>{opportunity.event.league}</p>
                     </Col>
                     <Col xs={4} md={2}>
                         <h6>Event</h6>
@@ -34,20 +34,20 @@ function Opportunity({ opportunity }) {
                     </Col>
                     <Col xs={4} md={2}>
                         <h6>Market</h6>
-                        <p>{opportunity.trigger.type}</p>
+                        <p>{opportunity.market[0]}</p>
                     </Col>
                     <Col xs={4} md={2}>
                         <h6>Bet 1</h6>
-                        <Logo bookmaker_key={opportunity.bet_one_bookmaker_key} />
-                        <h6>{opportunity.trigger.bet_one_dir} : {opportunity.bet_one_bookmaker}</h6>
+                        <Logo bookmaker_key={opportunity.bet_one_bookmaker} />
+                        <h6>{opportunity.bet_one_bookmaker} - {opportunity.bet_one_name}</h6>
                         <p>Odds: {american(opportunity.bet_one_price)}</p>
                         <p>Stake: ${opportunity.bet_one_stake.toFixed(2)}</p>
                         <p>Profit: ${opportunity.bet_one_profit.toFixed(2)}</p>
                     </Col>
                     <Col xs={4} md={2}>
                         <h6>Bet 2</h6>
-                        <Logo bookmaker_key={opportunity.bet_two_bookmaker_key} />
-                        <h6>{opportunity.trigger.bet_two_dir} : {opportunity.bet_two_bookmaker}</h6>
+                        <Logo bookmaker_key={opportunity.bet_two_bookmaker} />
+                        <h6>{opportunity.bet_two_bookmaker} - {opportunity.bet_two_name}</h6>
                         <p>Odds: {american(opportunity.bet_two_price)}</p>
                         <p>Stake: ${opportunity.bet_two_stake.toFixed(2)}</p>
                         <p>Profit: ${opportunity.bet_two_profit.toFixed(2)}</p>

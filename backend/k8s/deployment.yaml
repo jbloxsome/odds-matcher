@@ -20,10 +20,10 @@ spec:
         ports:
         - containerPort: 80
         env:
-        - name: THE_ODDS_API_KEY
+        - name: ODDSJAM_API_KEY
           valueFrom:
             secretKeyRef:
-              name: the-odds-api
+              name: oddsjam
               key: api_key
         resources:
           requests:

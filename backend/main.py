@@ -4,88 +4,127 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from models import Event, Price, Opportunity, Trigger
+from models import Event, Price, Opportunity
+
+def american_to_decimal(american):
+    if american > 0:
+        return 1 + (american / 100)
+    else:
+        return 1 - (100 / (-1 * american))
 
 def get_sports(api_key):
     url = f'https://api.the-odds-api.com/v4/sports/?apiKey={api_key}'
     response = requests.get(url)
     return response.json()
 
-def get_us_odds(api_key, region, sport, markets):
-    url = f'https://api.the-odds-api.com/v4/sports/{sport}/odds/?regions={region}&markets={markets}&oddsFormat=decimal&apiKey={api_key}'
+def get_odds_from_oddsjam(api_key, sport, sportsbooks, market):
+    sportsbooks = sportsbooks.split(',')
+
+    url = f'https://api-external.oddsjam.com/api/v2/game-odds?key={api_key}&sport={sport}&market_name={market}'
+
+    for sportsbook in sportsbooks:
+        url = url + '&sportsbook=' + sportsbook
+
     response = requests.get(url)
     return response.json()
 
 def evaluate_opportunity(bet_one, bet_two, event, stake):
     # Takes two bets and computes the potential opportunity - i.e what would happen if you placed both bets (regardless of the actual outcome
     # of the underlying event.)
+
+    if bet_one.price > 2 or bet_two.price > 2:
+
+        bet_one_name = f'{bet_one.name}'
+        bet_two_name = f'{bet_two.name}'
     
-    # Tigger type needs to be the same otherwise the bets aren't opposing.
-    if (bet_one.trigger.type == bet_two.trigger.type):
+        # market type needs to be the same otherwise the bets aren't opposing.
+        if (bet_one.market_name == bet_two.market_name):
 
-        valid = True
+            valid = True
 
-        bet_one_price = bet_one.bet_one_price
-        bet_one_bookmaker = bet_one.bookmaker_title
-        bet_one_bookmaker_key = bet_one.bookmaker_key
+            bet_one_price = bet_one.price
+            bet_one_bookmaker = bet_one.sportsbook_name
 
-        bet_two_price = bet_two.bet_two_price
-        bet_two_bookmaker = bet_two.bookmaker_title
-        bet_two_bookmaker_key = bet_two.bookmaker_key
+            bet_two_price = bet_two.price
+            bet_two_bookmaker = bet_two.sportsbook_name
 
-        bet_one_percent = 100 / bet_one_price
-        bet_two_percent = 100 / bet_two_price
+            # Moneyline bets are bets for home win or away win. The bet is only valid if bet one is for home win and bet two is for away win or vice versa.
+            if bet_one.market_name == 'Moneyline':
+                if bet_one.name == bet_two.name:
+                    valid = False
 
-        # For spreads bets we need to ensure that the over/under prices are opposite for each bet i.e if bet_one is for the home team to win by over 1.5 goals
-        # then bet 2 needs to be for the home team to not win by over 1.5 goals to have a valid opportunity.
-        if bet_one.trigger.type == 'spreads':
-            if (bet_one.trigger.over_points != -1 * bet_two.trigger.under_points) or (bet_one.trigger.under_points != -1 * bet_two.trigger.over_points):
+            # For spreads bets we need to ensure that the over/under values are opposite for each bet i.e if bet_one is for the home team to win by over 1.5 goals
+            # then bet_two needs to be for the home team to not win by over 1.5 goals to have a valid opportunity.
+            if bet_one.market_name == 'Point Spread':
+
+                bet_one_tokens = bet_one.name.split(' ')
+                bet_one_team = ' '.join(bet_one_tokens[:-1])
+                bet_one_handicap = float(bet_one_tokens[-1])
+
+                bet_two_tokens = bet_two.name.split(' ')
+                bet_two_team = ' '.join(bet_two_tokens[:-1])
+                bet_two_handicap = float(bet_two_tokens[-1])
+
+                if bet_one_team == bet_two_team:
+                    valid = False
+
+                if bet_one_handicap != -1 * bet_two_handicap:
+                    valid = False
+
+                bet_one_name = f'{bet_one_team} {bet_one_handicap}'
+                bet_two_name = f'{bet_two_team} {bet_two_handicap}'
+
+            # Similar to spreads bets in that we need to ensure that we're evaluating two opposing bets here, totals is slightly different to spreads however.
+            # If bet_one is for over 1.5 goals, then bet_two would have to be for under 1.5 goals.
+            if bet_one.market_name == 'Total Points':
+
+                bet_one_tokens = bet_one.name.split(' ')
+                bet_one_over_under = ' '.join(bet_one_tokens[:-1])
+                bet_one_total = bet_one_tokens[-1]
+
+                bet_two_tokens = bet_two.name.split(' ')
+                bet_two_over_under = ' '.join(bet_two_tokens[:-1])
+                bet_two_total = bet_two_tokens[-1]
+
+                # Not valid if bet one and bet two are both the same direction i.e they're both 'Over' or both 'Under'
+                if (bet_one_over_under == bet_two_over_under):
+                    valid = False
+
+                # Not valid if bet one and bet two don't have the same total
+                if (bet_one_total != bet_two_total):
+                    valid = False
+
+                bet_one_name = f'{bet_one_over_under} {bet_one_total}'
+                bet_two_name = f'{bet_two_over_under} {bet_two_total}'
+
+            # We could evaluate opposing bets for the same bookmaker, but it's not worth returning them as an opportunity because the bookmaker will likely
+            # always ensure that their book is over round.
+            if bet_one_bookmaker == bet_two_bookmaker:
                 valid = False
+            
+            # Once we've verified that we're evaluating two opposing bets, we can compute the opportunity.
+            if valid == True:
 
-            # Don't return situations where odds < 2 because these opportunities tend to be too small for much profit.
-            if (bet_one.bet_one_price < 2) and (bet_two.bet_two_price < 2):
-                valid = False
+                event.prices = []
 
-        # Similar to spreads bets in that we need to ensure that we're evaluating two opposing bets here, totals is slightly different to spreads however.
-        # If bet_one is for over 1.5 goals, then bet_two would have to be for under 1.5 goals.
-        if bet_one.trigger.type == 'totals':
-            if (bet_one.trigger.over_points != bet_two.trigger.under_points) or (bet_one.trigger.under_points != bet_two.trigger.over_points):
-                valid = False
+                opp = Opportunity(
+                    market=bet_one.market_name,
+                    bet_one_bookmaker=bet_one_bookmaker,
+                    bet_one_name=bet_one_name,
+                    bet_one_price=bet_one_price,
+                    bet_two_bookmaker=bet_two_bookmaker,
+                    bet_two_name=bet_two_name,
+                    bet_two_price=bet_two_price,
+                    event=event,
+                    stake=stake
+                )
 
-            # Don't return situations where odds < 2 because these opportunities tend to be too small for much profit.
-            if (bet_one.bet_one_price < 2) and (bet_two.bet_two_price < 2):
-                valid = False
+                opp.compute_round()
+                opp.compute_stakes()
+                opp.compute_returns()
+                opp.compute_profits()
 
-        # We could evaluate opposing bets for the same bookmaker, but it's not worth returning them as an opportunity because the bookmaker will likely
-        # always ensure that their book is over round.
-        if bet_one_bookmaker == bet_two_bookmaker:
-            valid = False
-        
-        # this is a bit of a sanity check, we would never really expect to see a book be under round by more the 5%.
-        if bet_one_percent + bet_two_percent < 95:
-            valid = False
-        
-        # Once we've verified that we're evaluating two opposing bets, we can compute the opportunity.
-        if valid == True:
-
-            opp = Opportunity(
-                trigger = bet_one.trigger,
-                bet_one_bookmaker=bet_one_bookmaker,
-                bet_one_bookmaker_key=bet_one_bookmaker_key,
-                bet_one_price=bet_one_price,
-                bet_two_bookmaker=bet_two_bookmaker,
-                bet_two_bookmaker_key=bet_two_bookmaker_key,
-                bet_two_price=bet_two_price,
-                event=event,
-                stake=stake
-            )
-
-            opp.compute_round()
-            opp.compute_stakes()
-            opp.compute_returns()
-            opp.compute_profits()
-
-            return opp
+                return opp
 
 def dutch_calculator(event: Event, stake: float):
     # For a given event, compute all of the dutching opportunities.
@@ -109,90 +148,46 @@ app.add_middleware(
 async def health():
     return '{"healthy": "true"}'
 
-# Returns a list of available sports.
-@app.get("/api/sports")
-async def sports():
-    api_key = os.environ.get('THE_ODDS_API_KEY')
-    return get_sports(api_key=api_key)
-
 # Returns a list of matched opportunities.
 @app.get("/api/odds")
 async def odds(
-    sport: str = 'upcoming', 
-    region: str = 'us', 
+    sport: str = 'basketball',
     stake: float = 100.00,
-    bookmakers: str = 'betmgm,williamhill_us,draftkings,fanduel,unibet,pointsbetus,sugarhouse,twinspires,barstool,wynnbet,foxbet',
-    markets: str = 'h2h,totals,spreads'
+    bookmakers: str = 'Borgata,Golden Nugget,SuperBook,theScore,BetRivers,Caesars,Sports Interaction,888sport,LeoVegas,Betfred,Betway,bet365,unibet,BetMGM,William Hill,DraftKings,FanDuel,FOX bet,PointsBet,SugarHouse,TwinSpires,Barstool,WynnBET',
+    market: str = 'Total Points'
 ):
-    api_key = os.environ.get('THE_ODDS_API_KEY')
+    api_key = os.environ.get('ODDSJAM_API_KEY')
     
     # fetch the latest odds
-    odds = get_us_odds(api_key=api_key, sport=sport, region=region, markets=markets)
+    events = get_odds_from_oddsjam(api_key=api_key, sport=sport, sportsbooks=bookmakers, market=market)['data']
 
-    # parse list of bookmakers
-    bookmakers = bookmakers.split(',')
-
+    opportunities = []
+    
     # loop through all of the returned odds and create an Event object for each event, Event objects store the odds from each bookmaker
     # for the given event.
-    for odd in odds:
+    for e in events:
 
-        event = Event(odd['id'], odd['commence_time'], odd['sport_key'], odd['sport_title'], odd['home_team'], odd['away_team'])
+        event = Event(
+            id = e['id'],
+            time = e['start_date'],
+            sport = e['sport'],
+            league = e['league'],
+            home_team = e['home_team'],
+            away_team = e['away_team']
+        )
         
-        for bookmaker in odd['bookmakers']:
+        prices = [Price(
+                    id = o['id'],
+                    sportsbook_name = o['sports_book_name'],
+                    name = o['name'],
+                    price = american_to_decimal(o['price']),
+                    checked_date = o['checked_date'],
+                    bet_points = o['bet_points'],
+                    market_name = o['market_name'],
+                    deep_link_url = o['deep_link_url']
+                ) for o in e['odds']]
 
-            if bookmaker['key'] in bookmakers:
-
-                markets = [m for m in bookmaker['markets'] if m['key'] == 'h2h' or m['key'] == 'totals' or m['key'] == 'spreads']
-
-                for market in markets:
-                    
-                    home_price = [p for p in market['outcomes'] if p['name'] == event.home_team]
-                    away_price = [p for p in market['outcomes'] if p['name'] == event.away_team]
-                    over_price = [p for p in market['outcomes'] if p['name'] == 'Over']
-                    under_price = [p for p in market['outcomes'] if p['name'] == 'Under']
-
-                    # The type of Trigger will depend on the market (h2h, totals, spreads).
-                    if market['key'] == 'h2h':
-                        trigger = Trigger(
-                            type='h2h', 
-                            home_side=event.home_team, 
-                            away_side=event.away_team,
-                            bet_one_dir='Home Win',
-                            bet_two_dir='Away Win'
-                        )
-                    elif market['key'] == 'totals':
-                        trigger = Trigger(
-                            type='totals', 
-                            home_side=event.home_team, 
-                            away_side=event.away_team, 
-                            over_points=over_price[0]['point'], 
-                            under_points=under_price[0]['point'],
-                            mid_point=over_price[0]['point'],
-                            bet_one_dir='Over ' + str(over_price[0]['point']),
-                            bet_two_dir='Under ' + str(under_price[0]['point'])
-                        )
-                    else:
-                        trigger = Trigger(
-                            type='spreads', 
-                            home_side=event.home_team, 
-                            away_side=event.away_team, 
-                            over_points=home_price[0]['point'], 
-                            under_points=away_price[0]['point'],
-                            mid_point=home_price[0]['point'],
-                            bet_one_dir=event.home_team + ' ' + str(home_price[0]['point']),
-                            bet_two_dir=event.away_team + ' ' + str(away_price[0]['point'])
-                        )
-
-                    price = Price(
-                        bookmaker_key=bookmaker['key'],
-                        bookmaker_title=bookmaker['title'], 
-                        last_updated=bookmaker['last_update'],
-                        trigger=trigger,
-                        bet_one_price=home_price[0]['price'] if market['key'] == 'h2h' or market['key'] == 'spreads' else over_price[0]['price'],
-                        bet_two_price=away_price[0]['price'] if market['key'] == 'h2h' or market['key'] == 'spreads' else under_price[0]['price']
-                    )
-
-                    event.addPrice(price)
+        event.prices = prices
 
         # Calculate all dutching opportunities for the event
         opps = dutch_calculator(event, stake)
@@ -201,10 +196,12 @@ async def odds(
         # in the list for these. This line removed those values.
         opps = [o for o in opps if o is not None]
 
-    # Sort by round to return the most profitable opportunities first
-    opps.sort(key = lambda x: x.round)
+        opportunities = opportunities + opps
 
-    return opps
+    # Sort by round to return the most profitable opportunities first
+    opportunities.sort(key = lambda x: x.round)
+
+    return opportunities
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000)

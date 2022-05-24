@@ -8,7 +8,7 @@ services:
     volumes:
     - ./backend:/app
     environment:
-      - THE_ODDS_API_KEY=${THE_ODDS_API_KEY}
+      - ODDSJAM_API_KEY=${ODDSJAM_API_KEY}
   frontend:
     image: node:alpine
     ports:

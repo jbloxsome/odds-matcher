@@ -1,27 +1,26 @@
 import json
 
-from .trigger import Trigger
 from .event import Event
 
 class Opportunity:
     def __init__(
         self,
-        trigger: Trigger,
-        bet_one_bookmaker: str, 
-        bet_one_bookmaker_key: str, 
+        market: str,
+        bet_one_bookmaker: str,
         bet_one_price: float, 
+        bet_one_name: str,
         bet_two_bookmaker: str, 
-        bet_two_bookmaker_key: str, 
         bet_two_price: float, 
+        bet_two_name: str,
         event: Event, 
         stake: float
     ) -> None:
-        self.trigger = trigger
+        self.market = market,
         self.bet_one_bookmaker = bet_one_bookmaker
-        self.bet_one_bookmaker_key = bet_one_bookmaker_key
+        self.bet_one_name = bet_one_name
         self.bet_one_price = bet_one_price
         self.bet_two_bookmaker = bet_two_bookmaker
-        self.bet_two_bookmaker_key = bet_two_bookmaker_key
+        self.bet_two_name = bet_two_name
         self.bet_two_price = bet_two_price
         self.event = event
         self.stake = stake
