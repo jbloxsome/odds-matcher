@@ -12,11 +12,6 @@ def american_to_decimal(american):
     else:
         return 1 - (100 / (-1 * american))
 
-def get_sports(api_key):
-    url = f'https://api.the-odds-api.com/v4/sports/?apiKey={api_key}'
-    response = requests.get(url)
-    return response.json()
-
 def get_odds_from_oddsjam(api_key, sport, sportsbooks, market):
     sportsbooks = sportsbooks.split(',')
 
